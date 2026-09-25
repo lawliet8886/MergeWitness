@@ -125,14 +125,14 @@ export function prepare({ repoPath, baseRef, branchARef, branchBRef, testCommand
     branchB: createWorktree(clonePath, 'branch-b', commits.branchB),
     merged: createWorktree(clonePath, 'merged', commits.base),
   };
-  const mergeA = run('git', ['merge', '--no-ff', '--no-commit', commits.branchA], { cwd: paths.merged });
+  const mergeA = run('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'merge', '--no-ff', '--no-commit', commits.branchA], { cwd: paths.merged });
   let merge;
   if (mergeA.exitCode !== 0) {
     merge = { clean: false, stage: 'branchA', ...mergeA };
   } else {
     const commitA = run('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'MergeWitness snapshot branch A'], { cwd: paths.merged });
     if (commitA.exitCode !== 0) throw new Error(`Could not commit disposable branch A snapshot: ${commitA.stderr.trim()}`);
-    const mergeB = run('git', ['merge', '--no-ff', '--no-commit', commits.branchB], { cwd: paths.merged });
+    const mergeB = run('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'merge', '--no-ff', '--no-commit', commits.branchB], { cwd: paths.merged });
     if (mergeB.exitCode !== 0) {
       merge = { clean: false, stage: 'branchB', ...mergeB };
     } else {
