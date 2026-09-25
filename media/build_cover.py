@@ -49,4 +49,12 @@ for x0,y0,x1,y1,label,state,color in cards:
     d.text(((x0+20)*SCALE,(y0+54)*SCALE),state,font=font("segoeuib.ttf",31),fill=color)
 d.text((68*SCALE, 540*SCALE), "Alpha $90  →  Beta should be $100  →  observes $90", font=font("segoeui.ttf",23),fill="#e2ecff")
 d.text((855*SCALE, 582*SCALE), "signal-foundry / MergeWitness", font=font("segoeui.ttf",15),fill="#8fa8cb")
-img.resize((1200,630),Image.Resampling.LANCZOS).save(HERE / "cover.png", optimize=True)
+art = img.resize((1200, 630), Image.Resampling.LANCZOS)
+canvas = Image.new("RGB", (1440, 810), NAVY)
+background = ImageDraw.Draw(canvas)
+for x in range(0, 1440, 56):
+    background.line((x, 0, x, 810), fill="#132344", width=1)
+for y in range(0, 810, 56):
+    background.line((0, y, 1440, y), fill="#132344", width=1)
+canvas.paste(art, (120, 90))
+canvas.save(HERE / "cover.png", optimize=True)

@@ -1,6 +1,6 @@
 # MergeWitness — LabLab submission record
 
-**Status:** submitted on 25 September 2026. LabLab displayed “You have successfully submitted your project for the IBM Bob 2.0 hackathon event!” and published the [MergeWitness submission](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/signal-foundry/mergewitness). The live submission page is authoritative; the prose below is the working copy prepared for its form.
+**Status:** submitted and updated on 25 September 2026. LabLab displayed “Submission Updated!” and “Your submission for IBM Bob 2.0 hackathon has been updated successfully.” The [public MergeWitness submission](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/signal-foundry/mergewitness) is authoritative; the prose below records its edited form.
 
 ## Form fields observed on 25 September 2026
 
@@ -27,7 +27,7 @@ MergeWitness is a developer workflow for making that interaction visible before 
 
 The focused probe ran three times in each snapshot. It passed in Base, Change A, and Change B. It failed three times in the combined snapshot, where Beta should receive 100 but observed 90. MergeWitness classified that result as an interaction witness. IBM Bob assisted the original probe investigation and authored a nested-Map repair. An independent audit later strengthened derivative probe and cache checks for final verification. The repaired disposable candidate passed at commit `17ed2d8ca9997293383ad589119879c9eb59d94e`: the ordinary suite exited with code 0, the strengthened frozen probe passed, and checks confirmed both tenant pricing and the cache remained active.
 
-The public laboratory lets a judge run the scenario, inspect the exact input sequence and expected versus observed result, and see the verified repair. A local CLI/MCP workflow produces the same report for trusted JavaScript/TypeScript fixtures. The project reports only measured executions from its synthetic scenarios. A passing probe means that no failure was found by that probe; it never certifies a merge as safe.
+The public laboratory lets a judge run the scenario, inspect the exact input sequence and expected versus observed result, and see the verified repair. The local CLI/MCP workflow evaluates trusted repositories using runnable test and probe commands; its public reports record this synthetic case. A passing probe means that no failure was found by that probe; it never certifies a merge as safe.
 
 A second synthetic priority/cursor case tests a different interaction: priority ordering and an ID-based page cursor each pass alone, but their clean combination skips an item. Bob authored that probe and two feature checks. Independent measurement found the probe passing 3/3 in Base/A/B and failing 3/3 in Combined, while ordinary tests stayed green. No repair is claimed for this second case.
 
@@ -41,7 +41,7 @@ IBM Bob was a core part of MergeWitness's developer workflow, used through the v
 
 **Task 3 `4901e274fb4230386d1463da9b82ce4f` — second interaction probe.** Bob authored the priority/cursor probe and priority-order and ID-cursor retention checks with IDE file tools; the task consumed 0.552 Bobcoins. An independent run froze that probe, confirmed normal tests exit 0 in all four snapshots, and observed Base/A/B pass 3/3 while Combined fails 3/3 because item `a` is skipped. Both retention checks pass in Combined. Evidence: `bob_sessions/03-priority-cursor-probe-summary.png` and `reports/priority-cursor-evaluation.public.json`. No second-case repair is claimed.
 
-The final README maps each screenshot to its task goal, input commit, output commit, files, approvals, and validation. The project uses a synthetic fixture; these checks demonstrate the executed scenario and do not certify every merge as safe.
+The Bob evidence README maps each screenshot to its task goal, input and output commits, files, and validation. The project uses synthetic fixtures; these checks demonstrate the executed scenarios and do not certify every merge as safe.
 
 ## Tags selected in the live form
 
@@ -50,11 +50,11 @@ The final README maps each screenshot to its task goal, input commit, output com
 
 ## Final artifact readback
 
-- Cover image: `media/cover.png`, uploaded and visible in the submission form.
-- Interactive demo: https://lawliet8886.github.io/MergeWitness/ — public browser run passed Base, Change A, and Change B; Combined showed the 100-versus-90 witness; the Bob repair passed in a fresh worker.
-- Source repository: https://github.com/lawliet8886/MergeWitness — public, with both IBM Bob IDE task-summary screenshots in `bob_sessions/`.
-- Final video: `media/mergewitness_demo.mp4`, 96 seconds, 1920×1080, with Google Sulafat narration and burned captions. It uses 96 captured application states and picture-in-picture IBM Bob IDE evidence. The revised MP4 still requires LabLab replacement and readback.
-- Slides: `submission/mergewitness-deck-final-v2.pdf`; the corrected PDF still requires LabLab replacement and readback.
+- Cover image: `media/cover.png`, 1440×810 with crop-safe margins; its four cards and headline were visually read back in the public video poster at `image_expwbft8buhv1a25vptuqojx.jpg`.
+- Interactive demo: https://lawliet8886.github.io/MergeWitness/ — fresh public browser run passed Base, Change A, and Change B; Combined showed the 100-versus-90 witness; the Bob repair passed in a fresh worker. The Bob tab showed all three task screenshots and the second-case report links.
+- Source repository: https://github.com/lawliet8886/MergeWitness — public, with all three IBM Bob IDE task-summary screenshots in `bob_sessions/`.
+- Final video: `media/mergewitness_demo.mp4`, 96 seconds, 1920×1080, with Google Sulafat narration and burned captions. It uses 96 captured application states and picture-in-picture IBM Bob IDE evidence. The [public MP4](https://storage.googleapis.com/lablab-video-submissions/submissions/k33cja4qh4z9ldarcmzuxye2/r2u9hq0fcbuvy3yyge5w4qxf/video/video_d67r2zgzhbyme9397a80ec3g.mp4) had duration 96 seconds in the public player and byte-for-byte SHA-256 match to the local final file: `20a0c9e823b7f39afa5c98b3e82007b6909a8e599ff404e2f4442eae42e7d03c` (6,187,303 bytes).
+- Slides: [public PDF](https://storage.googleapis.com/lablab-static-eu/submissions/k33cja4qh4z9ldarcmzuxye2/r2u9hq0fcbuvy3yyge5w4qxf/presentation/presentation_cia9x0da4f4ey94jclgrkkav.pdf) matched `submission/mergewitness-deck-final-v2.pdf` byte for byte: SHA-256 `5ae7df8c627f6e9e8ea13a8cc124d6727aa7460ed0348380ea28400741b75bcc` (86,984 bytes).
 - Bob task evidence: three consumption-summary PNGs under `bob_sessions/`, with task goals, file hashes, and independent reports under `reports/`.
-- Release verification: [GitHub Actions run 36186885563](https://github.com/lawliet8886/MergeWitness/actions/runs/36186885563) succeeded on commit `a2fe475d3b2564912d096123758235a8a5c965a8`.
-- Submission readback: the [public project page](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/signal-foundry/mergewitness) shows title, team Signal Foundry, video, GitHub, Presentation, Demo, and judging status.
+- Release verification: [GitHub Actions run 36193477058](https://github.com/lawliet8886/MergeWitness/actions/runs/36193477058) succeeded on commit `a4e3a813c91fde7ef0c73dc398b652efe7d3dcf8`.
+- Submission readback: the [public project page](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/signal-foundry/mergewitness) shows the updated second-case paragraph, title, team Signal Foundry, new video poster and 96-second player, GitHub, new Presentation, Demo, and judging status.
