@@ -185,6 +185,52 @@ test('repair verification detects frozen dependency changes before and after exe
   }
 });
 
+test('repair verification rejects candidate and frozen-check changes made by a passing check', () => {
+  const fixture = fixtureRepo();
+  let analysis;
+  try {
+    analysis = prepare({ repoPath: fixture.tenantRepo, baseRef: 'base', branchARef: 'tenant-pricing', branchBRef: 'sku-cache' });
+    const probe = join(fixture.root, 'passing.probe.mjs');
+    const passingFeature = join(fixture.root, 'passing.feature.mjs');
+    const mutatingFeature = join(fixture.root, 'mutating.feature.mjs');
+    const modePath = join(fixture.root, 'mutation-mode.txt');
+    const catalog = join(analysis.paths.merged, 'src', 'catalog.js');
+    const frozenEarlierCheck = join(dirname(analysis.statePath), 'frozen-feature-checks', 'passing.feature.mjs');
+    writeFileSync(probe, "console.log(JSON.stringify({ status: 'pass' }));\n");
+    writeFileSync(passingFeature, "console.log(JSON.stringify({ status: 'pass' }));\n");
+    writeFileSync(mutatingFeature, `
+      import { appendFileSync, readFileSync } from 'node:fs';
+      import { spawnSync } from 'node:child_process';
+      const mode = readFileSync(${JSON.stringify(modePath)}, 'utf8').trim();
+      if (mode === 'candidate' || mode === 'commit') appendFileSync(${JSON.stringify(catalog)}, ${JSON.stringify('\n// changed during verification\n')});
+      if (mode === 'frozen') appendFileSync(${JSON.stringify(frozenEarlierCheck)}, ${JSON.stringify('\n// changed after its check ran\n')});
+      if (mode === 'commit') {
+        const add = spawnSync('git', ['add', '--', 'src/catalog.js'], { encoding: 'utf8' });
+        if (add.status !== 0) throw new Error(add.stderr);
+        const commit = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Mutated during verification'], { encoding: 'utf8' });
+        if (commit.status !== 0) throw new Error(commit.stderr);
+      }
+      console.log(JSON.stringify({ status: 'pass' }));
+    `);
+    writeFileSync(modePath, 'candidate');
+    evaluate({ analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [passingFeature, mutatingFeature], repetitions: 1 });
+
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: analysis.paths.merged }), /Candidate worktree changed during repair verification/);
+    const restore = spawnSync('git', ['restore', '--', 'src/catalog.js'], { cwd: analysis.paths.merged, encoding: 'utf8' });
+    assert.equal(restore.status, 0, restore.stderr);
+
+    writeFileSync(modePath, 'frozen');
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: analysis.paths.merged }), /Frozen feature check changed/);
+    writeFileSync(frozenEarlierCheck, readFileSync(passingFeature, 'utf8'));
+
+    writeFileSync(modePath, 'commit');
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: analysis.paths.merged }), /Candidate commit or tree changed during repair verification/);
+  } finally {
+    if (analysis) dispose({ analysisId: analysis.analysisId });
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
+
 test('CLI writes a failed verification report and exits nonzero', () => {
   const fixture = fixtureRepo();
   let analysis;

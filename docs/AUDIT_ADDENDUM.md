@@ -1,6 +1,6 @@
 # Independent audit addendum
 
-The two IBM Bob IDE tasks and their untouched outputs are preserved under
+The three IBM Bob IDE tasks and their untouched outputs are preserved under
 `src/bob-probes/`, `src/bob-repairs/tenant-cache/`, and `bob_sessions/`. Bob's
 original tenant-cache probe and cache check were useful for discovering and
 repairing the interaction, but an independent audit identified two ways to
@@ -13,11 +13,21 @@ strengthen the verification:
   external `Proxy`. This checks that a second identical request actually uses
   the cache rather than trusting a metric returned by the candidate.
 
-The final public evaluation and repair reports use those independently authored
-derivatives. They do **not** attribute the derivative code to IBM Bob. The
-original Bob files remain byte-for-byte as recorded by their hashes in the
-evaluation report. The verifier also rejects a dirty candidate worktree and
-compares the complete structured evidence from repeated runs.
+The [separate original-probe report](../reports/tenant-cache-bob-original.public.json)
+freezes Bob's exact `tenant-cache.probe.mjs` (SHA-256
+`c9c4e6bbe923d71af63fa2ebbba34e0abc6c9a235c7c4b3933c238728c417b7d`)
+and measures Base/A/B passing 3/3, then Combined failing 3/3 with 100 expected
+and 90 observed. The [audit evaluation](../reports/tenant-cache-evaluation.public.json)
+and [repair report](../reports/tenant-cache-repair.public.json) instead use the
+independently authored derivative (SHA-256
+`cbe0359d761a44e8c9387a67e1581a3c8738abb9d5e49b742a55881c2853854a`). They
+do **not** attribute derivative code to IBM Bob. The two evaluations have
+matching source trees; their generated commit IDs differ because each run
+creates a disposable merge. The original probe hash matches its frozen copy in
+the separate report, and the audit report records hashes of Bob's other
+originals alongside its derivative hashes. The verifier also
+rejects a dirty candidate worktree and compares the complete structured
+evidence from repeated runs.
 
 Bob's `REPAIR_RATIONALE.md` is kept as a contemporaneous task artifact. It
 refers to an earlier disposable candidate commit, `f3e8ad58…6f05c`, and the

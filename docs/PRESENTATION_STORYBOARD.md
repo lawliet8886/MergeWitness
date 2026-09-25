@@ -1,12 +1,12 @@
 # MergeWitness — presentation package
 
-This is the final six-slide presentation and 96-second English judge video. The tenant-cache scenario is measured with a synthetic fixture. The video uses actual browser states, two real IBM Bob IDE task-summary captures, and Google Sulafat narration. A third Bob task on the priority/cursor fixture is separately evidenced in the repository.
+This is the six-slide presentation and the local, roughly 150-second replacement judge video awaiting final review. The tenant-cache scenario is measured with a synthetic fixture. The new video uses continuous browser capture, all three real IBM Bob IDE task-summary screenshots, and Google Sulafat narration. The public LabLab player still contains the earlier 96-second video until the final submission update.
 
 ## Submission constraints
 
 - MP4 duration: at most 3 minutes, with narration.
 - At least 90 seconds must show the solution in action on screen.
-- The browser laboratory remains visible throughout the 96-second video; real Bob IDE evidence appears as labeled picture-in-picture during the Bob segment.
+- The browser laboratory remains visible throughout the replacement video; real Bob IDE evidence appears as labeled picture-in-picture during the Bob segments.
 
 ## Six-slide outline
 
@@ -46,19 +46,19 @@ This is the final six-slide presentation and 96-second English judge video. The 
 
 **Say:** “MergeWitness gives maintainers a reproducible interaction witness before release. It does not certify every merge as safe; it reports exactly what the executed probe found.”
 
-## Final 96-second edit
+## Replacement continuous edit (local, pending publication)
 
 | Time | Visible evidence |
 | --- | --- |
-| 00:00–00:12 | Running app hero, branch relationship, and comparison action. |
-| 00:12–00:28 | Four snapshot results from the browser workers; base/A/B pass and combined finds the 100-versus-90 witness. |
-| 00:28–00:55 | Scroll to the frozen Alpha-then-Beta sequence and its observed report. |
-| 00:55–01:01 | Bob task 1 summary appears over the running app, labeled as the original probe and checks. |
-| 01:01–01:14 | Bob task 2 summary appears over the repair tab, labeled as the proposed repair. |
-| 01:14–01:29 | Fresh browser candidate run and visible pass for tenant pricing and cache retention. |
-| 01:29–01:36 | Verified outcome and live-demo address; narration finishes at 01:35. |
+| 00:00–00:09 | Live browser opens and runs the comparison within the opening seconds. |
+| 00:09–00:31 | Four fresh browser-worker results; Base/A/B pass and Combined exposes the 100-versus-90 witness. |
+| 00:31–01:01 | Inspect the frozen Alpha-then-Beta sequence and expected versus observed output. |
+| 01:01–01:25 | Open Bob evidence tab; actual task 1 IDE screenshot appears, with original Bob probe distinguished from audit derivative. |
+| 01:25–01:51 | Open repair tab; actual task 2 IDE screenshot and a fresh browser candidate run show retained behavior. |
+| 01:51–02:16 | Show the second synthetic priority/cursor witness, task 3 IDE evidence, and its no-repair boundary. |
+| 02:16–02:30 | Return to verified outcome and the live-demo address. |
 
-The captions are sentence-aligned to the 95.32-second narration and are burned
+The captions are aligned to the measured 146.24-second narration and burned
 into the MP4. The video shows Bob's actual IDE summaries as evidence, while the
 candidate checks and audit are attributed to independent validation. No new
 Bob activity is simulated in the browser.

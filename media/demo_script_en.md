@@ -1,13 +1,18 @@
-# MergeWitness final demonstration — English
+# MergeWitness continuous judge demo — English
 
-Video duration: 96 seconds. The exact Sulafat narration is 95.32 seconds and reflects the independently verified tenant-cache scenario on 25 September 2026.
+The local replacement video runs for about 150 seconds. Its exact narration is
+[`narration_final.txt`](narration_final.txt), synthesized with Google Sulafat
+for 146.24 seconds. [`demo_final_captions_en.srt`](demo_final_captions_en.srt)
+contains sentence-aligned captions. The published LabLab video remains the
+earlier 96-second edit until the next final review and submission update.
 
-> Two changes can be individually correct and still fail when combined. MergeWitness makes that interaction visible before a release.
->
-> This synthetic catalog starts with a global notebook price of one hundred dollars. Change A adds tenant pricing, so Alpha pays ninety dollars. Change B adds a cache by notebook SKU. Each branch passes its recorded Node test suite.
->
-> The clean merge is where the hidden failure appears. Alpha requests the notebook first, and the cache stores ninety dollars under the notebook alone. Beta then requests the same notebook. Beta should receive one hundred dollars, but receives Alpha's ninety-dollar value. The browser repeats that frozen sequence across the real Git snapshots. Base, Change A, and Change B pass the invariant. The combined snapshot fails consistently.
->
-> IBM Bob authored the probe and the feature checks that made this interaction explicit. Bob then produced a focused repair in catalog dot js. The repair uses a nested map: first by tenant, then by notebook. That keeps each tenant's cache entry separate without fragile string key encoding.
->
-> The candidate was independently verified. The recorded Node suite passed, the frozen probe passed consistently, and both tenant-pricing and cache feature checks passed. The public report records the candidate commit and the unchanged test evidence. MergeWitness gives a maintainer one concrete witness, one repair, and a reproducible path to verify both features remain intact.
+The new edit starts the real browser comparison within the opening seconds,
+shows the four snapshot results and the Alpha/Beta sequence, opens the Bob
+evidence and repair tabs, then runs the repaired candidate in a fresh browser
+worker. Labeled, genuine IBM Bob IDE screenshots accompany the three task
+segments. The narration distinguishes Bob's original probe from independently
+strengthened verification and explicitly says the second case has no repair.
+
+The source is continuous Playwright browser video, not a sequence of one-second
+application stills. The manifest in `.video-capture/manifest.json` records
+each action and any browser errors; it is a local build artifact.

@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "scenario": "tenant-cache",
+  "stage": "Bob-original-probe-evaluation",
+  "passed": true,
+  "bobTaskId": "fad890dd4396030a3cdd86588dbbf59f",
+  "bobTaskSummary": "bob_sessions/01-tenant-cache-probe-summary.png",
+  "source": {
+    "fixture": "synthetic tenant-cache-history",
+    "refs": {
+      "baseRef": "base",
+      "branchARef": "tenant-pricing",
+      "branchBRef": "sku-cache"
+    },
+    "commits": {
+      "base": "c203d9f27e75c0142a82d723b9918837e4554abb",
+      "branchA": "7d19c5cc5a43d893f09d133b0b22f127acaa3b59",
+      "branchB": "5a381da78e4d4f7272f8e91b1082ae37afd0bb09",
+      "merged": "1d30d1d1a7788c0793d6411a2e475b9f4d025604"
+    },
+    "trees": {
+      "base": "9c74a7161e896beeaaec837fec420f8d51ab7513",
+      "branchA": "0660c921b9a3a0ce14c09eb00a4873d00000743f",
+      "branchB": "de29e6022dec1aacb052bedfcd17596069a95421",
+      "merged": "65dfbc8ebdd8f0fbb85ea36fd184ef6bc6d86303"
+    }
+  },
+  "merge": {
+    "clean": true,
+    "commit": "1d30d1d1a7788c0793d6411a2e475b9f4d025604"
+  },
+  "normalTests": {
+    "base": {
+      "exitCode": 0
+    },
+    "branchA": {
+      "exitCode": 0
+    },
+    "branchB": {
+      "exitCode": 0
+    },
+    "merged": {
+      "exitCode": 0
+    }
+  },
+  "classification": "interaction_witness",
+  "repetitions": 3,
+  "bobOriginalProbe": {
+    "name": "tenant-cache.probe.mjs",
+    "sha256": "c9c4e6bbe923d71af63fa2ebbba34e0abc6c9a235c7c4b3933c238728c417b7d"
+  },
+  "frozenProbe": {
+    "sha256": "c9c4e6bbe923d71af63fa2ebbba34e0abc6c9a235c7c4b3933c238728c417b7d",
+    "files": [
+      {
+        "name": "tenant-cache.probe.mjs",
+        "sha256": "c9c4e6bbe923d71af63fa2ebbba34e0abc6c9a235c7c4b3933c238728c417b7d"
+      }
+    ]
+  },
+  "matrix": {
+    "base": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "branchA": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "branchB": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "merged": {
+      "status": "fail",
+      "consistent": true,
+      "evidence": [
+        {
+          "expected": 100,
+          "observed": 90
+        },
+        {
+          "expected": 100,
+          "observed": 90
+        },
+        {
+          "expected": 100,
+          "observed": 90
+        }
+      ]
+    }
+  },
+  "limitation": "This is a separate measurement of Bob's original fixed-price probe. The final repair verification uses an independently strengthened derivative and independent cache check."
+}

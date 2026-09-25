@@ -12,6 +12,8 @@ docs/review/
 media/live-frames/
 media/live-frames-v2/
 media/.ui-action-frames/
+media/.video-capture/
+media/.narration-silence.log
 media/__pycache__/
 media/review-*
 media/*_draft.mp4

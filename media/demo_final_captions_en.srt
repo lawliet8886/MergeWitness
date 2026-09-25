@@ -1,0 +1,148 @@
+1
+00:00:00,282 --> 00:00:03,090
+I open MergeWitness and run the comparison.
+
+2
+00:00:03,773 --> 00:00:12,735
+The browser starts fresh workers for four Git snapshots: the
+base project, tenant pricing, a product cache, and their clean
+combination.
+
+3
+00:00:13,590 --> 00:00:16,547
+The ordinary Node suite passed in every snapshot.
+
+4
+00:00:17,270 --> 00:00:20,996
+Here, the same new behavior rule is checked across all four.
+
+5
+00:00:21,760 --> 00:00:22,583
+Base passes.
+
+6
+00:00:23,226 --> 00:00:24,427
+Pricing alone passes.
+
+7
+00:00:25,050 --> 00:00:26,105
+Cache alone passes.
+
+8
+00:00:26,801 --> 00:00:28,609
+The combined version fails.
+
+9
+00:00:29,291 --> 00:00:31,907
+That is the interaction a green test suite missed.
+
+10
+00:00:32,827 --> 00:00:34,908
+Now I inspect the exact sequence.
+
+11
+00:00:35,792 --> 00:00:38,828
+Alpha requests a notebook and receives its ninety-dollar price.
+
+12
+00:00:39,558 --> 00:00:41,945
+The cache stores that price under the notebook SKU.
+
+13
+00:00:42,972 --> 00:00:45,058
+Beta requests the same notebook next.
+
+14
+00:00:45,790 --> 00:00:49,517
+Beta should pay one hundred dollars, but receives Alpha's
+ninety-dollar value.
+
+15
+00:00:50,420 --> 00:00:56,601
+This is a concrete customer-boundary failure, with expected and
+observed results that a maintainer can reproduce.
+
+16
+00:00:57,583 --> 00:01:00,944
+IBM Bob helped turn the suspicion into executable evidence.
+
+17
+00:01:01,845 --> 00:01:06,959
+In the first real IDE task, Bob authored an original interaction
+probe and feature checks.
+
+18
+00:01:07,715 --> 00:01:10,082
+You can open its task summary from this evidence tab.
+
+19
+00:01:10,946 --> 00:01:15,578
+Independent review then strengthened the frozen probe and cache
+check before final verification.
+
+20
+00:01:16,630 --> 00:01:22,727
+The report records exactly which versions and hashes were
+executed; the audit additions are not attributed to Bob.
+
+21
+00:01:23,649 --> 00:01:25,075
+Next I open the repair tab.
+
+22
+00:01:25,734 --> 00:01:27,901
+Bob authored a focused change to the catalog.
+
+23
+00:01:28,557 --> 00:01:33,825
+Instead of one cache entry per product, it uses nested maps:
+first by tenant, then by SKU.
+
+24
+00:01:34,813 --> 00:01:39,148
+Human review caught a collision risk in an earlier flat key, and
+Bob revised the candidate.
+
+25
+00:01:39,910 --> 00:01:41,581
+I click Run verified candidate.
+
+26
+00:01:42,284 --> 00:01:49,836
+A fresh browser worker now shows that Alpha still pays ninety,
+Beta receives a fresh one hundred, and repeated requests still
+benefit from caching.
+
+27
+00:01:51,033 --> 00:01:53,791
+The repository also contains a second synthetic case.
+
+28
+00:01:54,319 --> 00:01:57,498
+Bob wrote a priority-and-cursor probe plus two feature checks.
+
+29
+00:01:58,144 --> 00:02:02,981
+Its clean combination skips an item even though the individual
+changes and ordinary tests pass.
+
+30
+00:02:03,694 --> 00:02:07,252
+We report that witness honestly; no repair is claimed for this
+second case.
+
+31
+00:02:08,195 --> 00:02:15,626
+Finally, the public repository holds all three real Bob task
+summaries, the frozen checks, exact commits, and machine-
+readable reports.
+
+32
+00:02:16,278 --> 00:02:20,347
+MergeWitness gives a release reviewer a specific failing
+sequence and a tested repair.
+
+33
+00:02:21,185 --> 00:02:26,240
+A passing probe only describes that execution; it cannot certify
+every possible merge.

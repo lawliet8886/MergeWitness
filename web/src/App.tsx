@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { ScenarioResult, Variant } from './scenario'
 import './styles.css'
@@ -34,7 +34,13 @@ export default function App() {
   const [results, setResults] = useState<Partial<Record<Variant, ScenarioResult>>>({})
   const [active, setActive] = useState<EvidenceTab>('counterexample')
   const [running, setRunning] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ action: 'comparison' | 'repair'; message: string } | null>(null)
+  const flowRef = useRef<HTMLElement>(null)
+  const baseRef = useRef<HTMLDivElement>(null)
+  const changeARef = useRef<HTMLDivElement>(null)
+  const changeBRef = useRef<HTMLDivElement>(null)
+  const combinedRef = useRef<HTMLDivElement>(null)
+  const [branchPath, setBranchPath] = useState('')
   const combined = results.combined
   const repaired = results.repaired
   const complete = variants.every(({ id }) => results[id])
@@ -42,21 +48,23 @@ export default function App() {
 
   const runComparison = async () => {
     setRunning(true); setError(null)
+    setResults((current) => ({ repaired: current.repaired }))
     try {
       const output = await Promise.all(variants.map(({ id }) => workerRun(id)))
       setResults(Object.fromEntries(output.map((result) => [result.variant, result])))
       requestAnimationFrame(() => document.getElementById('laboratory')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-    } catch { setError('The browser could not start a fresh scenario worker. Please try again.') }
+    } catch { setError({ action: 'comparison', message: 'The browser could not start a fresh scenario worker. Please try again.' }) }
     finally { setRunning(false) }
   }
 
   const verifyRepair = async () => {
     setRunning(true); setError(null)
+    setResults((current) => ({ ...current, repaired: undefined }))
     try {
       const repair = await workerRun('repaired')
       setResults((current) => ({ ...current, repaired: repair }))
     }
-    catch { setError('The repair worker did not complete. Please try again.') }
+    catch { setError({ action: 'repair', message: 'The repair worker did not complete. Please try again.' }) }
     finally { setRunning(false) }
   }
 
@@ -74,6 +82,29 @@ export default function App() {
 
   const trace = useMemo(() => combined?.trace ?? [], [combined])
 
+  useLayoutEffect(() => {
+    const flow = flowRef.current
+    const nodes = [baseRef.current, changeARef.current, changeBRef.current, combinedRef.current]
+    if (!flow || nodes.some((node) => !node)) return
+
+    const updateLines = () => {
+      const origin = flow.getBoundingClientRect()
+      const point = (node: HTMLDivElement, side: 'left' | 'right') => {
+        const rect = node.getBoundingClientRect()
+        return `${Math.round((side === 'left' ? rect.left : rect.right) - origin.left)} ${Math.round(rect.top + rect.height / 2 - origin.top)}`
+      }
+      const [base, changeA, changeB, combined] = nodes as HTMLDivElement[]
+      setBranchPath(`M${point(base, 'right')} L${point(changeA, 'left')} M${point(base, 'right')} L${point(changeB, 'left')} M${point(changeA, 'right')} L${point(combined, 'left')} M${point(changeB, 'right')} L${point(combined, 'left')}`)
+    }
+
+    const observer = new ResizeObserver(updateLines)
+    observer.observe(flow)
+    nodes.forEach((node) => observer.observe(node as HTMLDivElement))
+    window.addEventListener('resize', updateLines)
+    updateLines()
+    return () => { observer.disconnect(); window.removeEventListener('resize', updateLines) }
+  }, [])
+
   return <main>
     <header className="site-header">
       <a className="wordmark" href="#top" aria-label="MergeWitness home"><span className="mark">⌁</span>Merge<span>Witness</span></a>
@@ -83,14 +114,14 @@ export default function App() {
 
     <section className="hero" id="top">
       <div><p className="kicker">Interaction test laboratory</p><h1>Two green changes.<br /><em>One broken price.</em></h1><p className="lede">Recorded Node tests pass across four Git snapshots. This browser reruns the same interaction sequence and exposes the customer boundary failure.</p></div>
-      <div className="hero-actions"><button className="primary" onClick={runComparison} disabled={running}>{running ? 'Running fresh workers…' : complete ? 'Run comparison again' : 'Run comparison'} <span>→</span></button><p>Runs locally in fresh browser workers<br />with synthetic fixture data.</p></div>
+      <div className="hero-actions"><button className="primary" onClick={runComparison} disabled={running}>{running ? 'Running fresh workers…' : complete ? 'Run comparison again' : 'Run comparison'} <span>→</span></button>{error?.action === 'comparison' && <p className="action-error" role="alert">{error.message}</p>}<p>Runs locally in fresh browser workers<br />with synthetic fixture data.</p></div>
     </section>
 
-    <section className="flow" aria-label="Branch flow">
-      <svg className="branch-lines" viewBox="0 0 1000 166" preserveAspectRatio="none" aria-hidden="true"><path d="M160 83 L400 47 M160 83 L600 119 M520 47 L840 83 M720 119 L840 83" /></svg>
-      <div className="node base-node"><b>Base</b><small>main</small></div>
-      <div className="node a-node"><b>Change A</b><small>tenant-prices</small></div><div className="node b-node"><b>Change B</b><small>sku-cache</small></div>
-      <div className="node combined-node"><b>Combined</b><small>clean merge</small></div>
+    <section className="flow" aria-label="Branch flow" ref={flowRef}>
+      <svg className="branch-lines" aria-hidden="true"><path d={branchPath} /></svg>
+      <div className="node base-node" ref={baseRef}><b>Base</b><small>main</small></div>
+      <div className="node a-node" ref={changeARef}><b>Change A</b><small>tenant-prices</small></div><div className="node b-node" ref={changeBRef}><b>Change B</b><small>sku-cache</small></div>
+      <div className="node combined-node" ref={combinedRef}><b>Combined</b><small>clean merge</small></div>
     </section>
 
     <section id="laboratory" className="lab-section">
@@ -117,7 +148,7 @@ export default function App() {
         <div className="sequence"><p className="eyebrow">Frozen probe · same sequence in every snapshot</p><div className="request"><span>01</span><div><b>Alpha requests notebook</b><small>Expected $90 · receives $90</small></div><strong>$90</strong></div><div className="arrow">↓ then</div><div className="request beta"><span>02</span><div><b>Beta requests notebook</b><small>Expected $100 · {combined ? `receives $${combined.probe.observed}` : 'awaiting run'}</small></div><strong>{combined ? `$${combined.probe.observed}` : '—'}</strong></div></div>
         <div className="outcome"><p className="eyebrow">Observed report</p>{combined ? <><div className={`outcome-value ${combined.probe.status}`}><span>Expected</span><b>${combined.probe.expected}</b><span>Observed</span><b>${combined.probe.observed}</b></div><p>{combined.probe.detail}</p><code>cache[sku] → returns Alpha’s entry</code></> : <p className="muted">No result is asserted until you run the comparison.</p>}</div>
       </div>
-      <div id="panel-repair" role="tabpanel" aria-labelledby="tab-repair" tabIndex={0} hidden={active !== 'repair'} className="evidence-panel repair-panel"><div><p className="eyebrow">Bob-authored candidate · independently verified</p><h3>Scope every cache entry by tenant, then product.</h3><pre><code>{`const tenantCache = cache.get(tenant) ?? new Map()\ntenantCache.set(sku, price)`}</code></pre><p>The verified candidate changes only <code>src/catalog.js</code> and uses nested Maps, avoiding flat-key collisions.</p></div><div className="repair-action"><p className="eyebrow">Fresh browser check of candidate commit 17ed2d8</p><StatePill status={repaired?.probe.status} />{repaired ? <ul className="feature-list">{repaired.features.map((item) => <Check key={item.name} {...item} />)}</ul> : <p className="muted">Run the candidate in a fresh browser worker.</p>}<a className="report-link" href="https://github.com/lawliet8886/MergeWitness/blob/main/reports/tenant-cache-repair.public.json" target="_blank" rel="noreferrer">Open independent repair report ↗</a><button className="primary" onClick={verifyRepair} disabled={running}>{running ? 'Checking…' : repaired ? 'Run candidate again' : 'Run verified candidate'} <span>→</span></button></div></div>
+      <div id="panel-repair" role="tabpanel" aria-labelledby="tab-repair" tabIndex={0} hidden={active !== 'repair'} className="evidence-panel repair-panel"><div><p className="eyebrow">Bob-authored candidate · independently verified</p><h3>Scope every cache entry by tenant, then product.</h3><pre><code>{`const tenantCache = cache.get(tenant) ?? new Map()\ntenantCache.set(sku, price)`}</code></pre><p>The verified candidate changes only <code>src/catalog.js</code> and uses nested Maps, avoiding flat-key collisions.</p></div><div className="repair-action"><p className="eyebrow">Fresh browser check of candidate commit 17ed2d8</p><StatePill status={repaired?.probe.status} />{repaired ? <ul className="feature-list">{repaired.features.map((item) => <Check key={item.name} {...item} />)}</ul> : <p className="muted">Run the candidate in a fresh browser worker.</p>}<a className="report-link" href="https://github.com/lawliet8886/MergeWitness/blob/main/reports/tenant-cache-repair.public.json" target="_blank" rel="noreferrer">Open independent repair report ↗</a><button className="primary" onClick={verifyRepair} disabled={running}>{running ? 'Checking…' : repaired ? 'Run candidate again' : 'Run verified candidate'} <span>→</span></button>{error?.action === 'repair' && <p className="action-error" role="alert">{error.message}</p>}</div></div>
       <div id="panel-bob" role="tabpanel" aria-labelledby="tab-bob" tabIndex={0} hidden={active !== 'bob'} className="evidence-panel bob-panel">
         <div>
           <p className="eyebrow">Required hackathon evidence</p>
@@ -132,7 +163,6 @@ export default function App() {
     </section>
 
     <section className="method"><p className="kicker">3 · Read the outcome correctly</p><div><h2>One witness is evidence of a defect. A passing probe is only evidence about this run.</h2><p>MergeWitness reports a concrete sequence, its expected value, the observed value, and the exact probe. It does not label a merge “safe” merely because one probe passes.</p></div></section>
-    {error && <p className="error" role="alert">{error}</p>}
     <footer><span>MergeWitness · Signal Foundry</span><span>Synthetic catalog fixture · browser execution</span></footer>
   </main>
 }

@@ -112,6 +112,15 @@ function assertPreparedSnapshots(analysis) {
   }
 }
 
+function assertCandidateIntegrity(candidate, expectedHead, expectedTree) {
+  if (git(candidate, 'rev-parse', 'HEAD') !== expectedHead || treeId(candidate, 'HEAD') !== expectedTree) {
+    throw new Error('Candidate commit or tree changed during repair verification.');
+  }
+  if (git(candidate, 'status', '--porcelain=v1', '--untracked-files=all', '--ignored=matching')) {
+    throw new Error('Candidate worktree changed during repair verification.');
+  }
+}
+
 /**
  * Creates disposable worktrees from a trusted local repository. It never writes
  * to the source repository: all merge work happens in the private clone.
@@ -239,6 +248,14 @@ function assertFrozenProbeIntegrity(frozen) {
   }
 }
 
+function assertFrozenFeatureChecksIntegrity(featureChecks) {
+  for (const entry of featureChecks) {
+    if (!existsSync(entry.frozen) || sha256(entry.frozen) !== entry.hash) {
+      throw new Error(`Frozen feature check changed: ${entry.frozen}`);
+    }
+  }
+}
+
 function freezeFeatureChecks(analysis, featureCheckPaths) {
   const frozenRoot = join(analysis.root, 'frozen-feature-checks');
   mkdirSync(frozenRoot, { recursive: true });
@@ -269,11 +286,13 @@ export function evaluate({ analysisId, statePath, probePath, probeDependencies =
   const probeHash = sha256(frozenProbe);
   const frozenEvidence = { ...frozen, probeHash };
   assertFrozenProbeIntegrity(frozenEvidence);
+  assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
   const matrix = {};
   for (const key of ['base', 'branchA', 'branchB', 'merged']) matrix[key] = probeSnapshot(analysis.paths[key], frozenProbe, repetitions);
 
   assertPreparedSnapshots(analysis);
   assertFrozenProbeIntegrity(frozenEvidence);
+  assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
 
   let classification;
   if (!normalTestsAllPass(analysis)) classification = 'ordinary_test_failure';
@@ -306,25 +325,39 @@ export function verifyRepair({ analysisId, statePath, candidatePath }) {
   if (analysis.frozen.featureChecks.length === 0) {
     throw new Error('At least one independent feature check is required for repair verification.');
   }
-  const dirty = git(candidate, 'status', '--porcelain=v1');
+  assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
+  const candidateHead = git(candidate, 'rev-parse', 'HEAD');
+  const candidateTree = treeId(candidate, 'HEAD');
+  const dirty = git(candidate, 'status', '--porcelain=v1', '--untracked-files=all', '--ignored=matching');
   if (dirty) throw new Error('Candidate worktree must be committed and clean before repair verification.');
   const changed = new Set(git(candidate, 'diff', '--name-only', `${analysis.commits.merged}..HEAD`).split(/\r?\n/).filter(Boolean));
   const protectedChange = [...changed].find((file) => /(^|\/)(test|tests|bob-probes)\/|(^|\/)(package(?:-lock)?\.json|tsconfig.*\.json|vite\.config\.|.*\.config\.[cm]?[jt]s$)/.test(file));
   if (protectedChange) throw new Error(`Candidate changes protected test, probe, harness, or configuration file: ${protectedChange}`);
   const normalTests = testSnapshot(candidate, analysis.testCommand);
+  assertCandidateIntegrity(candidate, candidateHead, candidateTree);
+  assertFrozenProbeIntegrity(analysis.frozen);
+  assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
   const probe = probeSnapshot(candidate, analysis.frozen.probePath, analysis.frozen.repetitions);
+  assertCandidateIntegrity(candidate, candidateHead, candidateTree);
+  assertFrozenProbeIntegrity(analysis.frozen);
+  assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
   const featureChecks = analysis.frozen.featureChecks.map((entry) => {
-    if (sha256(entry.frozen) !== entry.hash) throw new Error(`Frozen feature check changed: ${entry.frozen}`);
-    return { ...entry, result: probeSnapshot(candidate, entry.frozen, 1) };
+    assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
+    const result = probeSnapshot(candidate, entry.frozen, 1);
+    assertCandidateIntegrity(candidate, candidateHead, candidateTree);
+    assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
+    return { ...entry, result };
   });
   assertFrozenProbeIntegrity(analysis.frozen);
+  assertFrozenFeatureChecksIntegrity(analysis.frozen.featureChecks);
+  assertCandidateIntegrity(candidate, candidateHead, candidateTree);
   const passed = normalTests.exitCode === 0 && probe.kind === 'pass' && probe.consistent && featureChecks.every((entry) => entry.result.kind === 'pass' && entry.result.consistent);
   const report = {
     version: 1,
     analysisId,
     candidatePath: candidate,
-    candidateHead: git(candidate, 'rev-parse', 'HEAD'),
-    candidateTree: treeId(candidate, 'HEAD'),
+    candidateHead,
+    candidateTree,
     sourceMergedCommit: analysis.commits.merged,
     sourceMergedTree: analysis.trees.merged,
     evaluationClassification: analysis.frozen.classification,

@@ -8,14 +8,14 @@ Built by **Signal Foundry** for the IBM Bob 2.0 Hackathon, 25–27 September 202
 
 The main fixture is a small JavaScript catalog. Change A adds tenant-specific prices; Change B adds a SKU cache. They merge without a textual conflict, and the ordinary Node test suite exits successfully in all four snapshots. The cache in the combined version is keyed only by SKU, so after Alpha requests `notebook` at 90, Beta receives Alpha's cached 90 instead of its own price of 100.
 
-| Snapshot | Ordinary tests | Frozen interaction probe |
+| Snapshot | Ordinary tests | Frozen audit probe |
 | --- | --- | --- |
 | Base | Pass | Pass, 3/3 runs |
 | Change A: tenant pricing | Pass | Pass, 3/3 runs |
 | Change B: SKU cache | Pass | Pass, 3/3 runs |
 | Clean combination | Pass | **Fail, 3/3 runs: expected 100, observed 90** |
 
-The [evaluation report](reports/tenant-cache-evaluation.public.json) records the Git commits and trees, probe hash, ordinary test exit codes, three independent probe runs per snapshot, and classification `interaction_witness`. Bob authored the first probe; an independent audit strengthened its invariant by comparing Beta after Alpha with Beta in a fresh catalog. The separately [verified repair report](reports/tenant-cache-repair.public.json) records a one-file Bob-assisted fix: the ordinary suite passes, the frozen strengthened probe passes, and independent tenant-pricing and externally observed caching checks pass. The candidate commit is `17ed2d8ca9997293383ad589119879c9eb59d94e` inside the disposable fixture clone; its source hash matches [the retained Bob repair](src/bob-repairs/tenant-cache/catalog.fixed.js). See the [audit addendum](docs/AUDIT_ADDENDUM.md) for provenance and limits.
+The [Bob-original probe report](reports/tenant-cache-bob-original.public.json) records a separate run of Bob's untouched probe: Base/A/B passed 3/3 and Combined failed 3/3 with 100 expected and 90 observed. The [audit evaluation report](reports/tenant-cache-evaluation.public.json) records the same result for an independently strengthened probe, which also compares Beta after Alpha with Beta in a fresh catalog. Both reports record source trees, probe hashes, and ordinary test exit codes. The [verified repair report](reports/tenant-cache-repair.public.json) records a one-file Bob-assisted fix: the ordinary suite passes, the frozen audit probe passes, and tenant-pricing and externally observed caching checks pass. The candidate commit is `17ed2d8ca9997293383ad589119879c9eb59d94e` inside the disposable fixture clone; its source hash matches [the retained Bob repair](src/bob-repairs/tenant-cache/catalog.fixed.js). See the [audit addendum](docs/AUDIT_ADDENDUM.md) for provenance and limits.
 
 ## Run it
 
@@ -26,6 +26,8 @@ node scripts/run-lab.mjs
 ```
 
 The command regenerates two synthetic Git histories, creates an isolated clone for the tenant-cache case, runs ordinary tests and the audit-strengthened probe across the four snapshots, then writes `reports/tenant-cache-evaluation.public.json`. It prints a private temporary `statePath` and merged `candidatePath` to the terminal for the repair stage; those local paths are deliberately omitted from the public report.
+
+To measure Bob's original probe separately on the generated tenant-cache history, run `node scripts/run-bob-original-lab.mjs`. It writes `reports/tenant-cache-bob-original.public.json`. The two reports have matching source trees; their disposable merge commit IDs can differ because each run creates its own merge commit.
 
 After generating the histories, `node scripts/run-priority-lab.mjs` independently
 runs Bob's second-scenario probe across the four priority/cursor snapshots. Its
@@ -49,7 +51,7 @@ Its browser workers execute source exported from the actual fixture Git refs. Th
 
 ## How IBM Bob contributed
 
-IBM Bob was used in its own IDE for three scoped tasks. In task `fad890dd4396030a3cdd86588dbbf59f`, Bob inspected the fixture and wrote the [original interaction probe](src/bob-probes/tenant-cache.probe.mjs) plus [tenant-pricing](src/bob-probes/tenant-pricing.check.mjs) and [cache](src/bob-probes/sku-cache.check.mjs) retention checks. The task consumed 0.953 Bobcoins; its [consumption-summary screenshot](bob_sessions/01-tenant-cache-probe-summary.png) is preserved. Independent audit subsequently added a [shared-versus-fresh probe](src/bob-probes/tenant-cache.shared-fresh.probe.mjs) and [Proxy-observed cache check](src/bob-probes/sku-cache.proxy.check.mjs), while leaving Bob's originals untouched. The final evaluator froze those strengthened files by hash before repair verification.
+IBM Bob was used in its own IDE for three scoped tasks. In task `fad890dd4396030a3cdd86588dbbf59f`, Bob inspected the fixture and wrote the [original interaction probe](src/bob-probes/tenant-cache.probe.mjs) plus [tenant-pricing](src/bob-probes/tenant-pricing.check.mjs) and [cache](src/bob-probes/sku-cache.check.mjs) retention checks. The task consumed 0.953 Bobcoins; its [consumption-summary screenshot](bob_sessions/01-tenant-cache-probe-summary.png) is preserved. The [separate original-probe report](reports/tenant-cache-bob-original.public.json) measures that exact probe. Independent audit subsequently added a [shared-versus-fresh probe](src/bob-probes/tenant-cache.shared-fresh.probe.mjs) and [Proxy-observed cache check](src/bob-probes/sku-cache.proxy.check.mjs), while leaving Bob's originals untouched. The final evaluator froze those strengthened files by hash before repair verification.
 
 In task `d09305949f41fdff62b67e8e966d6c74`, Bob proposed a tenant-aware cache. Human review caught a separator-collision risk in the first proposed key; Bob revised it to nested maps keyed by tenant and SKU. The final candidate was copied unchanged into the disposable merged snapshot and verified by the frozen strengthened checks. Bob then read the earlier measured report and documented that observed result. This task consumed 0.637 Bobcoins; its [consumption-summary screenshot](bob_sessions/02-tenant-cache-repair-summary.png) is preserved.
 

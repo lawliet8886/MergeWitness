@@ -1,0 +1,10 @@
+{
+  "provider": "Google Cloud Text-to-Speech",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Sulafat",
+  "language": "en-US",
+  "narrationTextSha256": "c1a8877cb681e67ac894bbfe89b1085b27a470f716b191de82dcba8bb90d91e1",
+  "audioSha256": "d07b72859ad75eeb1bdd47804f919ab5011a3d68c7f39c3bf4ec5b871fdd2c60",
+  "durationSeconds": 146.24,
+  "estimatedOutputUsd": 0.07312
+}
