@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "scenario": "tenant-cache",
+  "stage": "evaluation",
+  "source": {
+    "fixture": "synthetic tenant-cache-history",
+    "refs": {
+      "baseRef": "base",
+      "branchARef": "tenant-pricing",
+      "branchBRef": "sku-cache"
+    },
+    "commits": {
+      "base": "1a0895a7b4ad32d5dbf8790796b9df17b65abd8a",
+      "branchA": "1cea33b45adc54e32876632ccc6627455b7c20d5",
+      "branchB": "8eca06a2602a5b2f550cab24c7fc3fd6bf1cb2c2",
+      "merged": "55a876e401738e8d3cabaf1dccf4de36dbc14e6b"
+    },
+    "trees": {
+      "base": "9c74a7161e896beeaaec837fec420f8d51ab7513",
+      "branchA": "0660c921b9a3a0ce14c09eb00a4873d00000743f",
+      "branchB": "de29e6022dec1aacb052bedfcd17596069a95421",
+      "merged": "65dfbc8ebdd8f0fbb85ea36fd184ef6bc6d86303"
+    }
+  },
+  "merge": {
+    "clean": true,
+    "commit": "55a876e401738e8d3cabaf1dccf4de36dbc14e6b"
+  },
+  "normalTests": {
+    "base": {
+      "exitCode": 0
+    },
+    "branchA": {
+      "exitCode": 0
+    },
+    "branchB": {
+      "exitCode": 0
+    },
+    "merged": {
+      "exitCode": 0
+    }
+  },
+  "classification": "interaction_witness",
+  "repetitions": 3,
+  "bobTaskArtifacts": {
+    "untouchedOriginals": [
+      {
+        "name": "tenant-cache.probe.mjs",
+        "sha256": "c9c4e6bbe923d71af63fa2ebbba34e0abc6c9a235c7c4b3933c238728c417b7d"
+      },
+      {
+        "name": "sku-cache.check.mjs",
+        "sha256": "e1988a867abcb3a95918d4975e5dfcea99b1dd6218d68f718c3fd8cfaa39b053"
+      }
+    ],
+    "auditDerivatives": [
+      {
+        "name": "tenant-cache.shared-fresh.probe.mjs",
+        "sha256": "cbe0359d761a44e8c9387a67e1581a3c8738abb9d5e49b742a55881c2853854a"
+      },
+      {
+        "name": "sku-cache.proxy.check.mjs",
+        "sha256": "55337e9f16fe1cb0793ed72de92c1648b1a3faf23da9e1635860d9acb27db5d5"
+      }
+    ]
+  },
+  "probe": {
+    "sha256": "cbe0359d761a44e8c9387a67e1581a3c8738abb9d5e49b742a55881c2853854a",
+    "files": [
+      {
+        "name": "tenant-cache.shared-fresh.probe.mjs",
+        "sha256": "cbe0359d761a44e8c9387a67e1581a3c8738abb9d5e49b742a55881c2853854a"
+      }
+    ]
+  },
+  "featureChecks": [
+    {
+      "name": "tenant-pricing.check.mjs",
+      "sha256": "f7cc4c4f9b518e8445ee7a878b5e5c34e5e1317e5b71487b8f0637b1c34d1fac"
+    },
+    {
+      "name": "sku-cache.proxy.check.mjs",
+      "sha256": "55337e9f16fe1cb0793ed72de92c1648b1a3faf23da9e1635860d9acb27db5d5"
+    }
+  ],
+  "matrix": {
+    "base": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        }
+      ]
+    },
+    "branchA": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        }
+      ]
+    },
+    "branchB": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 100,
+          "freshBeta": 100
+        }
+      ]
+    },
+    "merged": {
+      "status": "fail",
+      "consistent": true,
+      "evidence": [
+        {
+          "expected": 100,
+          "observed": 90,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 90,
+          "freshBeta": 100
+        },
+        {
+          "expected": 100,
+          "observed": 90,
+          "freshBeta": 100
+        }
+      ]
+    }
+  }
+}

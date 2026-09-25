@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "scenario": "tenant-cache",
+  "stage": "repair-verification",
+  "passed": true,
+  "coreVerificationPassed": true,
+  "normalTestsExitCode": 0,
+  "probe": {
+    "status": "pass",
+    "consistent": true
+  },
+  "featureChecks": [
+    {
+      "name": "tenant-pricing.check.mjs",
+      "sha256": "f7cc4c4f9b518e8445ee7a878b5e5c34e5e1317e5b71487b8f0637b1c34d1fac",
+      "status": "pass",
+      "consistent": true
+    },
+    {
+      "name": "sku-cache.proxy.check.mjs",
+      "sha256": "55337e9f16fe1cb0793ed72de92c1648b1a3faf23da9e1635860d9acb27db5d5",
+      "status": "pass",
+      "consistent": true
+    }
+  ],
+  "changedFiles": [
+    "src/catalog.js"
+  ],
+  "candidateCommit": "17ed2d8ca9997293383ad589119879c9eb59d94e",
+  "candidateTree": "5851388015e4d345e5c95de891ae64c38adf03c7",
+  "sourceMergedCommit": "55a876e401738e8d3cabaf1dccf4de36dbc14e6b",
+  "sourceMergedTree": "65dfbc8ebdd8f0fbb85ea36fd184ef6bc6d86303",
+  "evaluationClassification": "interaction_witness",
+  "evaluationPublicReportSha256": "aa1b5663dc1903db51f7318c26bf1c768cf6326325f3b311e82eb015133e3821",
+  "testedCatalog": {
+    "path": "src/catalog.js",
+    "sha256": "bc5c3d0c2f817111fe583a1273fb4c06026595294c50b259cfe1804e55d1e44b"
+  },
+  "retainedArtifact": {
+    "name": "catalog.fixed.js",
+    "sha256": "bc5c3d0c2f817111fe583a1273fb4c06026595294c50b259cfe1804e55d1e44b",
+    "matchesTestedCatalog": true
+  },
+  "frozenProbeHash": "cbe0359d761a44e8c9387a67e1581a3c8738abb9d5e49b742a55881c2853854a"
+}

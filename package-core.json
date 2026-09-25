@@ -1,0 +1,10 @@
+{
+  "name": "mergewitness-core",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:core": "node --test tests/core.test.mjs",
+    "fixture:histories": "node fixtures/create-fixtures.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
