@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
 import { Presentation, PresentationFile } from "@oai/artifact-tool";
 
 const workspaceDir = path.resolve(process.cwd());
@@ -12,7 +13,9 @@ const buildDir = path.join(workspaceDir, "docs", ".deck-build");
 const stagingDir = path.join(workspaceDir, ".codex-finalizer");
 const outputDir = path.join(workspaceDir, "submission");
 const finalPath = path.join(outputDir, "mergewitness-deck-final-v2.pptx");
+const finalPdfPath = path.join(outputDir, "mergewitness-deck-final-v2.pdf");
 const candidatePath = path.join(stagingDir, "mergewitness-deck-final-v2.pptx");
+const validatedPath = path.join(buildDir, `mergewitness-deck-validated-${Date.now()}.pptx`);
 
 const { resolvePresentationFont, finalizePresentation } = await import(
   pathToFileURL(path.join(skillDir, "container_tools", "artifact_tool_utils.mjs")).href,
@@ -99,14 +102,19 @@ function status(slide, x, y, text, pass) {
   box(s, 64, 100, 650, 180, "MergeWitness", { size: 64, bold: true });
   box(s, 68, 292, 555, 82, "A developer workflow for bugs that appear only when two green changes meet.", { size: 28, color: C.muted });
   box(s, 68, 584, 420, 28, "IBM BOB 2.0 HACKATHON  |  SIGNAL FOUNDRY", { size: 15, bold: true, color: C.lime });
-  box(s, 800, 168, 110, 60, "BASE", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
-  const a = box(s, 970, 90, 170, 70, "TENANT\nPRICING", { fill: C.navy2, line: { style: "solid", fill: C.lime, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
-  const b = box(s, 970, 250, 170, 70, "PRODUCT\nCACHE", { fill: C.navy2, line: { style: "solid", fill: C.lime, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
-  const c = box(s, 800, 385, 210, 76, "COMBINED\nFAILURE", { fill: C.navy2, line: { style: "solid", fill: C.pink, width: 3 }, radius: 14, size: 19, bold: true, color: C.pink, align: "center" });
-  s.shapes.connect(a, c, { kind: "straight", fromSide: "bottom", toSide: "top", line: { style: "solid", fill: C.line, width: 2 }, head: { type: "arrow", width: "sm", length: "sm" } });
-  s.shapes.connect(b, c, { kind: "straight", fromSide: "bottom", toSide: "right", line: { style: "solid", fill: C.line, width: 2 }, head: { type: "arrow", width: "sm", length: "sm" } });
-  line(s, 910, 228, 970, 125, C.line, 2);
-  line(s, 910, 228, 970, 285, C.line, 2);
+  // Orthogonal branches make the causal flow readable in the exported PDF.
+  line(s, 998, 162, 998, 212, C.line, 3);
+  line(s, 868, 212, 1122, 212, C.line, 3);
+  line(s, 868, 212, 868, 260, C.line, 3);
+  line(s, 1122, 212, 1122, 260, C.line, 3);
+  line(s, 868, 330, 868, 380, C.line, 3);
+  line(s, 1122, 330, 1122, 380, C.line, 3);
+  line(s, 868, 380, 1122, 380, C.line, 3);
+  line(s, 998, 380, 998, 414, C.line, 3);
+  box(s, 928, 99, 140, 63, "BASE", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
+  box(s, 780, 260, 176, 70, "TENANT\nPRICING", { fill: C.navy2, line: { style: "solid", fill: C.lime, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
+  box(s, 1034, 260, 176, 70, "PRODUCT\nCACHE", { fill: C.navy2, line: { style: "solid", fill: C.lime, width: 2 }, radius: 14, size: 18, bold: true, align: "center" });
+  box(s, 897, 414, 202, 76, "COMBINED\nFAILURE", { fill: C.navy2, line: { style: "solid", fill: C.pink, width: 3 }, radius: 14, size: 19, bold: true, color: C.pink, align: "center" });
   box(s, 800, 510, 360, 50, "SYNTHETIC FIXTURE\nInteraction witness verified", { size: 15, color: C.amber });
   s.speakerNotes.textFrame.setText("Measured synthetic fixture. Public evaluation report classifies the result as interaction_witness after three repetitions per snapshot.");
 }
@@ -119,8 +127,17 @@ function status(slide, x, y, text, pass) {
   box(s, 56, 282, 344, 90, "Tenant-specific prices\nAlpha: $90   Beta: $100", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 14, size: 23 });
   label(s, 56, 412, "Change B");
   box(s, 56, 444, 344, 90, "Cache by product\nRepeated requests avoid source calls", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 14, size: 23 });
-  box(s, 466, 260, 670, 270, "1   Alpha requests SKU-1                         $90\n\n2   Cache stores SKU-1                              $90\n\n3   Beta requests SKU-1                           $90  ✕\n\nExpected for Beta                               $100", { fill: "#0C2543", line: { style: "solid", fill: C.line, width: 2 }, radius: 18, size: 24 });
-  box(s, 886, 442, 200, 40, "price[SKU-1] = 90", { fill: "#432535", line: { style: "solid", fill: C.pink, width: 2 }, radius: 10, size: 17, color: C.pink, bold: true, align: "center" });
+  box(s, 466, 260, 670, 270, "", { fill: "#0C2543", line: { style: "solid", fill: C.line, width: 2 }, radius: 18 });
+  [
+    [282, "1   Alpha requests SKU-1", "$90", C.white],
+    [340, "2   Cache stores SKU-1", "$90", C.white],
+    [398, "3   Beta requests SKU-1", "$90  ✕", C.pink],
+    [466, "Expected for Beta", "$100", C.lime],
+  ].forEach(([y, event, value, color]) => {
+    box(s, 480, y, 456, 36, event, { size: 23, color: C.white });
+    box(s, 958, y, 152, 36, value, { size: 23, color, bold: color !== C.white, align: "right" });
+  });
+  box(s, 820, 536, 316, 36, "Cache key omits the tenant", { fill: "#432535", line: { style: "solid", fill: C.pink, width: 2 }, radius: 10, size: 17, color: C.pink, bold: true, align: "center" });
   box(s, 56, 590, 1080, 36, "The ordinary suite can still pass because it checks each feature alone.", { size: 23, color: C.white, bold: true });
   s.speakerNotes.textFrame.setText("Measured tenant-cache fixture. The combined snapshot observed Beta = 90 where the frozen probe expected 100, three times.");
 }
@@ -144,12 +161,12 @@ function status(slide, x, y, text, pass) {
 // Slide 4
 {
   const s = deck.slides.add();
-  base(s, 4, "IBM Bob inside the investigation loop", "Both relevant task summaries are recorded in bob_sessions/.");
+  base(s, 4, "Bob probes and repairs the interaction", "Three recorded IBM Bob tasks across two synthetic fixtures.");
   const steps = [
-    ["1", "Task 1: original probe", "fad890dd…bf59f  |  0.953 Bobcoins"],
-    ["2", "Audit derivatives", "Independent strengthened checks"],
-    ["3", "Task 2: repair", "Bob-authored nested-Map repair"],
-    ["4", "Task 2 evidence", "d093059…6c74  |  0.637 Bobcoins"],
+    ["1", "Bob writes probe", "Alpha then Beta on one SKU"],
+    ["2", "Compare snapshots", "Four states reveal 100 vs 90"],
+    ["3", "Bob writes repair", "Cache by tenant and SKU"],
+    ["4", "Independent audit", "Frozen probe and feature checks"],
   ];
   steps.forEach(([n, title, detail], i) => {
     const x = 56 + i * 282;
@@ -158,8 +175,8 @@ function status(slide, x, y, text, pass) {
     box(s, x, 440, 225, 60, detail, { size: 18, color: C.muted });
     if (i < 3) line(s, x + 210, 333, x + 264, 333, C.line, 3);
   });
-  box(s, 56, 565, 1120, 52, "Recorded: 01-tenant-cache-probe-summary.png and 02-tenant-cache-repair-summary.png in bob_sessions/.", { fill: "#15385E", radius: 12, size: 19, color: C.white, align: "center" });
-  s.speakerNotes.textFrame.setText("Task 1: fad890dd4396030a3cdd86588dbbf59f, 0.953 Bobcoins. Task 2: d09305949f41fdff62b67e8e966d6c74, 0.637 Bobcoins. Both screenshots are recorded in bob_sessions/.");
+  box(s, 56, 565, 1120, 52, "3 Bob sessions recorded. Second scenario: priority/cursor probe, combined fails 3/3.", { fill: "#15385E", radius: 12, size: 21, color: C.white, align: "center" });
+  s.speakerNotes.textFrame.setText("Task 1: fad890dd4396030a3cdd86588dbbf59f, 0.953 Bobcoins; Bob wrote the original tenant-cache probe. Task 2: d09305949f41fdff62b67e8e966d6c74, 0.637 Bobcoins; Bob wrote the tenant-cache repair. Task 3: 4901e274fb4230386d1463da9b82ce4f, 0.552 Bobcoins; Bob wrote the priority-cursor probe and two feature checks. Independent report reports/priority-cursor-evaluation.public.json records Base, A and B pass 3/3 and combined fail 3/3. Screenshots: bob_sessions/01-tenant-cache-probe-summary.png, 02-tenant-cache-repair-summary.png and 03-priority-cursor-probe-summary.png. No repair is claimed for the priority-cursor fixture.");
 }
 
 // Slide 5
@@ -169,7 +186,7 @@ function status(slide, x, y, text, pass) {
   box(s, 56, 258, 444, 196, "Before\n\ncache[sku] = price\n\nBeta receives Alpha’s cached price", { fill: "#432535", line: { style: "solid", fill: C.pink, width: 2 }, radius: 16, size: 26, color: C.white });
   box(s, 684, 258, 444, 196, "Bob-authored repair\n\nNested Map cache\n\nTenant and SKU remain distinct", { fill: "#173C42", line: { style: "solid", fill: C.lime, width: 2 }, radius: 16, size: 26, color: C.white });
   line(s, 530, 356, 648, 356, C.cyan, 4);
-  box(s, 566, 326, 48, 48, "?", { geometry: "ellipse", fill: C.cyan, size: 26, bold: true, color: C.navy, align: "center" });
+  box(s, 550, 322, 80, 60, "BOB", { geometry: "ellipse", fill: C.cyan, size: 17, bold: true, color: C.navy, align: "center" });
   ["Frozen interaction probe", "Tenant prices remain distinct", "Cache remains effective"].forEach((check, i) => {
     const x = 56 + i * 370;
     box(s, x, 518, 330, 112, "", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 12 });
@@ -184,14 +201,15 @@ function status(slide, x, y, text, pass) {
 {
   const s = deck.slides.add();
   base(s, 6, "A reproducible release decision", "MergeWitness reports what the executed interaction probe found.");
-  box(s, 56, 270, 310, 192, "Run the laboratory\n\nInspect the input sequence\nand the observed result", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 25 });
-  box(s, 486, 270, 310, 192, "Read the report\n\nSee commits, probe hash,\nand reproduction commands", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 25 });
-  box(s, 916, 270, 260, 192, "Review the repair\n\nCheck the frozen probe\nand feature checks", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 25 });
+  box(s, 56, 270, 310, 192, "Run the demo\n\nCompare snapshots and inspect the sequence", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
+  box(s, 486, 270, 310, 192, "Read the report\n\nCheck commits, probe hash and commands", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
+  box(s, 916, 270, 260, 192, "Review the repair\n\nRepeat the probe and feature checks", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
   line(s, 366, 366, 468, 366, C.line, 3);
   line(s, 796, 366, 898, 366, C.line, 3);
   box(s, 56, 548, 1120, 70, "A passing probe means this probe found no witness. It does not certify every merge as safe.", { fill: "#15385E", line: { style: "solid", fill: C.cyan, width: 2 }, radius: 14, size: 27, bold: true, align: "center" });
-  box(s, 56, 638, 800, 24, "Signal Foundry  |  IBM Bob 2.0 Hackathon  |  Public links pending verification", { size: 15, color: C.muted });
-  s.speakerNotes.textFrame.setText("Positioning reflects related work: QuietClash, SAM and test-based semantic conflict research, plus merge queues. Cite final public links in the README and submission after they are verified.");
+  box(s, 56, 633, 1050, 24, "Live demo: https://lawliet8886.github.io/MergeWitness/", { size: 15, color: C.cyan });
+  box(s, 56, 657, 1050, 24, "Code and evidence: https://github.com/lawliet8886/MergeWitness", { size: 15, color: C.cyan });
+  s.speakerNotes.textFrame.setText("Live demo: https://lawliet8886.github.io/MergeWitness/ . Code, Bob task evidence and public reports: https://github.com/lawliet8886/MergeWitness . A passing probe establishes only the tested behavior, not universal merge safety.");
 }
 
 await (await PresentationFile.exportPptx(deck)).save(candidatePath);
@@ -205,14 +223,26 @@ const result = await finalizePresentation({
   ...requirements,
   workspaceDir,
   candidatePath,
-  finalPath,
+  finalPath: validatedPath,
   pythonExecutable: process.env.RUNTIME_PYTHON,
   integrityValidatorPath: path.join(skillDir, "container_tools", "inspect_presentation_package_integrity.py"),
   layoutValidatorPath: path.join(skillDir, "container_tools", "inspect_presentation_layout_geometry.py"),
   layoutArgs: ["--expected-slide-size-emu", "12192000,6858000", "--validate-bullet-geometry", "--validate-heading-fit"],
   fontPolicy: { basis: "design", families: [font] },
   verifyArtifactToolImport: true,
-  receiptPath: path.join(stagingDir, "mergewitness-deck-final-v2.validation.json"),
+  receiptPath: path.join(stagingDir, `mergewitness-deck-${Date.now()}.validation.json`),
 });
 
-console.log(JSON.stringify({ finalPath, result }, null, 2));
+await fs.copyFile(validatedPath, finalPath);
+const conversionDir = path.join(buildDir, `pdf-${Date.now()}`);
+await fs.mkdir(conversionDir, { recursive: true });
+const soffice = process.env.LIBREOFFICE_PATH || "C:\\Program Files\\LibreOffice\\program\\soffice.exe";
+const conversion = spawnSync(soffice, [
+  `-env:UserInstallation=${pathToFileURL(path.join(conversionDir, "lo-profile")).href}`,
+  "--headless", "--convert-to", "pdf:impress_pdf_Export", "--outdir", conversionDir, finalPath,
+], { encoding: "utf8", timeout: 120000 });
+if (conversion.status !== 0 || conversion.error) {
+  throw new Error(`PDF conversion failed: ${conversion.error?.message ?? conversion.stderr ?? conversion.stdout}`);
+}
+await fs.copyFile(path.join(conversionDir, path.basename(finalPdfPath)), finalPdfPath);
+console.log(JSON.stringify({ finalPath, finalPdfPath, result, pdfConversion: conversion.stdout.trim() }, null, 2));

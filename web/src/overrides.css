@@ -28,6 +28,42 @@
 
 .pending-card.complete span { color: #1d8a64; }
 
+.lab-section, .evidence-section { scroll-margin-top: 16px; }
+
+.comparison-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: -8px 0 25px;
+  padding: 15px 18px;
+  border: 1px solid #b7d9c8;
+  border-radius: 9px;
+  background: #f1faf5;
+  color: #1b664e;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.comparison-summary.witness {
+  border-color: #e7b3aa;
+  background: #fff5f2;
+  color: #983e36;
+}
+
+.comparison-summary strong { white-space: nowrap; }
+.comparison-summary span { flex: 1; }
+.comparison-summary a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+
+.tabbar button { min-height: 44px; }
+.tabbar button:focus-visible { outline: 2px solid #2463db; outline-offset: 3px; border-radius: 3px; }
+.evidence-panel[hidden] { display: none; }
+
 @media (max-width: 900px) {
   .branch-lines { display: none; }
+}
+
+@media (max-width: 600px) {
+  .comparison-summary { align-items: flex-start; flex-direction: column; gap: 6px; margin-top: -4px; }
+  .tabbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; overflow: visible; }
+  .tabbar button { white-space: normal; padding: 8px 3px 10px; font-size: 11px; line-height: 1.2; text-align: center; }
 }

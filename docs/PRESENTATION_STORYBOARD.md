@@ -1,12 +1,12 @@
 # MergeWitness — presentation package
 
-This material is an English draft for a 2 minute 50 second narrated MP4 and a six-slide PDF. The tenant-cache scenario is measured with a synthetic fixture. Both relevant Bob task summaries are recorded.
+This is the final six-slide presentation and 96-second English judge video. The tenant-cache scenario is measured with a synthetic fixture. The video uses actual browser states, two real IBM Bob IDE task-summary captures, and Google Sulafat narration. A third Bob task on the priority/cursor fixture is separately evidenced in the repository.
 
 ## Submission constraints
 
 - MP4 duration: at most 3 minutes, with narration.
 - At least 90 seconds must show the solution in action on screen.
-- This storyboard reserves 115 seconds, from 0:35 to 2:30, for the running laboratory, IBM Bob evidence, reports, and repair verification.
+- The browser laboratory remains visible throughout the 96-second video; real Bob IDE evidence appears as labeled picture-in-picture during the Bob segment.
 
 ## Six-slide outline
 
@@ -46,21 +46,26 @@ This material is an English draft for a 2 minute 50 second narrated MP4 and a si
 
 **Say:** “MergeWitness gives maintainers a reproducible interaction witness before release. It does not certify every merge as safe; it reports exactly what the executed probe found.”
 
-## 2:50 narration storyboard
+## Final 96-second edit
 
-| Time | Visual | Narration |
-|---|---|---|
-| 0:00–0:15 | Branch graph and ordinary test results. | “Two green changes can still fail together. A clean text merge and green existing tests do not prove that the features behave correctly when combined.” |
-| 0:15–0:35 | Synthetic catalog setup and the behavior rule. | “MergeWitness compares base, change A, change B, and the clean combined merge using the same explicit rule: serving Alpha must not change Beta’s price.” |
-| 0:35–1:05 | **Running laboratory:** execute Alpha then Beta. | “This tenant-cache fixture adds tenant pricing and product caching. In the combined version, Alpha receives ninety. Beta should receive one hundred and receives ninety from the shared product cache.” |
-| 1:05–1:35 | **Running laboratory:** four-snapshot matrix and report. | “Original tests exit with code zero in all four snapshots. The frozen probe passes three times in base and both individual changes. It fails three times in the combined version, classified as an interaction witness.” |
-| 1:35–2:05 | **IBM Bob evidence on screen:** Task 1 and Task 2 summaries, then report. | “IBM Bob is central to this workflow. Task 1 assisted the probe investigation and consumed 0.953 Bobcoins. Task 2 authored the nested-Map repair and consumed 0.637 Bobcoins. Both task summaries are in the repository.” |
-| 2:05–2:30 | **Running laboratory:** apply repair and run strengthened audit checks. | “Bob authored the nested-Map repair. The audited disposable candidate at commit `17ed2d8ca9997293383ad589119879c9eb59d94e` passes independently authored strengthened derivative checks. Tenant pricing stays distinct, the cache remains active, and the ordinary suite exits with code zero.” |
-| 2:30–2:50 | Public report, links, and limit statement. | “A maintainer receives the counterexample, report, and verified repair candidate. This synthetic fixture demonstrates the executed interaction; a passing probe does not certify every merge as safe.” |
+| Time | Visible evidence |
+| --- | --- |
+| 00:00–00:12 | Running app hero, branch relationship, and comparison action. |
+| 00:12–00:28 | Four snapshot results from the browser workers; base/A/B pass and combined finds the 100-versus-90 witness. |
+| 00:28–00:55 | Scroll to the frozen Alpha-then-Beta sequence and its observed report. |
+| 00:55–01:01 | Bob task 1 summary appears over the running app, labeled as the original probe and checks. |
+| 01:01–01:14 | Bob task 2 summary appears over the repair tab, labeled as the proposed repair. |
+| 01:14–01:29 | Fresh browser candidate run and visible pass for tenant pricing and cache retention. |
+| 01:29–01:36 | Verified outcome and live-demo address; narration finishes at 01:35. |
+
+The captions are sentence-aligned to the 95.32-second narration and are burned
+into the MP4. The video shows Bob's actual IDE summaries as evidence, while the
+candidate checks and audit are attributed to independent validation. No new
+Bob activity is simulated in the browser.
 
 ## Recording rules
 
 - Keep real Bob clips distinguishable from browser replays or mockups.
-- Record the public demo from a fresh browser session after deployment.
-- Capture all commands and test outputs used in the video before editing.
-- Generate English narration only after the script is reconciled with the final evidence.
+- Recheck the deployed demo after each published UI revision.
+- Keep the raw browser capture manifest and script reproducible.
+- Keep the narration transcript and captions in sync with the MP4.

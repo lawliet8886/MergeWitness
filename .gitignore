@@ -11,6 +11,9 @@ bob_sessions/*-original.jpg
 docs/review/
 media/live-frames/
 media/live-frames-v2/
+media/.ui-action-frames/
+media/__pycache__/
+media/review-*
 media/*_draft.mp4
 media/mergewitness_demo_live.mp4
 media/mergewitness_live_ui.mp4
@@ -19,7 +22,6 @@ media/demo_live_contact.png
 media/live_ui_contact.png
 media/ui-illustrative-repair.png
 media/ui-verified-bob-repair.png
-media/demo_captions_en.srt
 media/render_draft.ps1
 submission/*draft*
 submission/*candidate*

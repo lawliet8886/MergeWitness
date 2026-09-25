@@ -1,6 +1,6 @@
-# MergeWitness draft demonstration — English
+# MergeWitness final demonstration — English
 
-Target duration: 2 minutes 45 seconds. This narration reflects the verified state on 25 September 2026.
+Video duration: 96 seconds. The exact Sulafat narration is 95.32 seconds and reflects the independently verified tenant-cache scenario on 25 September 2026.
 
 > Two changes can be individually correct and still fail when combined. MergeWitness makes that interaction visible before a release.
 >

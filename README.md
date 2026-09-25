@@ -27,6 +27,12 @@ node scripts/run-lab.mjs
 
 The command regenerates two synthetic Git histories, creates an isolated clone for the tenant-cache case, runs ordinary tests and the audit-strengthened probe across the four snapshots, then writes `reports/tenant-cache-evaluation.public.json`. It prints a private temporary `statePath` and merged `candidatePath` to the terminal for the repair stage; those local paths are deliberately omitted from the public report.
 
+After generating the histories, `node scripts/run-priority-lab.mjs` independently
+runs Bob's second-scenario probe across the four priority/cursor snapshots. Its
+[public report](reports/priority-cursor-evaluation.public.json) records the
+clean merge, green ordinary suite, 3/3 witness matrix, Bob-original file hashes,
+and separate priority-order and ID-cursor feature checks.
+
 To reproduce the repair verification, copy `src/bob-repairs/tenant-cache/catalog.fixed.js` over `src/catalog.js` **in the disposable merged candidate only**, commit that one change, then run `node scripts/run-lab.mjs --state <statePath> --candidate <candidatePath> --retained-artifact src/bob-repairs/tenant-cache/catalog.fixed.js`. The verifier requires a clean, committed candidate, rejects changes to protected tests, probes, and configuration, and executes the frozen probe and feature checks again. The [CLI](src/cli/mergewitness.mjs) and [MCP server](src/mcp/server.mjs) also expose the prepare/evaluate/verify-repair stages separately; see [fixture instructions](fixtures/README.md).
 
 The interactive site lives under [web](web). Build and check its exported Git snapshots with:
@@ -43,13 +49,23 @@ Its browser workers execute source exported from the actual fixture Git refs. Th
 
 ## How IBM Bob contributed
 
-IBM Bob was used in its own IDE for two scoped tasks. In task `fad890dd4396030a3cdd86588dbbf59f`, Bob inspected the fixture and wrote the [original interaction probe](src/bob-probes/tenant-cache.probe.mjs) plus [tenant-pricing](src/bob-probes/tenant-pricing.check.mjs) and [cache](src/bob-probes/sku-cache.check.mjs) retention checks. The task consumed 0.953 Bobcoins; its [consumption-summary screenshot](bob_sessions/01-tenant-cache-probe-summary.png) is preserved. Independent audit subsequently added a [shared-versus-fresh probe](src/bob-probes/tenant-cache.shared-fresh.probe.mjs) and [Proxy-observed cache check](src/bob-probes/sku-cache.proxy.check.mjs), while leaving Bob's originals untouched. The final evaluator froze those strengthened files by hash before repair verification.
+IBM Bob was used in its own IDE for three scoped tasks. In task `fad890dd4396030a3cdd86588dbbf59f`, Bob inspected the fixture and wrote the [original interaction probe](src/bob-probes/tenant-cache.probe.mjs) plus [tenant-pricing](src/bob-probes/tenant-pricing.check.mjs) and [cache](src/bob-probes/sku-cache.check.mjs) retention checks. The task consumed 0.953 Bobcoins; its [consumption-summary screenshot](bob_sessions/01-tenant-cache-probe-summary.png) is preserved. Independent audit subsequently added a [shared-versus-fresh probe](src/bob-probes/tenant-cache.shared-fresh.probe.mjs) and [Proxy-observed cache check](src/bob-probes/sku-cache.proxy.check.mjs), while leaving Bob's originals untouched. The final evaluator froze those strengthened files by hash before repair verification.
 
 In task `d09305949f41fdff62b67e8e966d6c74`, Bob proposed a tenant-aware cache. Human review caught a separator-collision risk in the first proposed key; Bob revised it to nested maps keyed by tenant and SKU. The final candidate was copied unchanged into the disposable merged snapshot and verified by the frozen strengthened checks. Bob then read the earlier measured report and documented that observed result. This task consumed 0.637 Bobcoins; its [consumption-summary screenshot](bob_sessions/02-tenant-cache-repair-summary.png) is preserved.
 
+In task `4901e274fb4230386d1463da9b82ce4f`, Bob authored a
+[priority/cursor interaction probe](src/bob-probes/priority-cursor.probe.mjs)
+and two feature checks for the second synthetic fixture, using only IDE file
+tools. It consumed 0.552 Bobcoins; its [IDE consumption summary](bob_sessions/03-priority-cursor-probe-summary.png)
+is preserved. The independent [report](reports/priority-cursor-evaluation.public.json)
+shows ordinary tests passing in all four snapshots, while the frozen Bob probe
+passes 3/3 in Base/A/B and fails 3/3 in Combined because item `a` is skipped.
+Both feature checks pass in the combined snapshot. No repair is claimed for
+this second scenario.
+
 ## Boundaries
 
-This is a synthetic demonstration, not a proof that arbitrary Git merges are safe. A passing probe only means that particular probe found no failure in that run. The CLI executes trusted local fixture code; process isolation and browser workers do not make untrusted repositories safe to run. The local `analysis-state.json` must remain intact; tampering with it invalidates the chain of evidence. A second synthetic priority/cursor fixture is included to exercise a different merge interaction, but the tenant-cache fixture is the completed Bob-assisted proof and repair.
+This is a synthetic demonstration, not a proof that arbitrary Git merges are safe. A passing probe only means that particular probe found no failure in that run. The CLI executes trusted local fixture code; process isolation and browser workers do not make untrusted repositories safe to run. The local `analysis-state.json` must remain intact; tampering with it invalidates the chain of evidence. The priority/cursor fixture demonstrates a second Bob-authored witness; the tenant-cache fixture is the completed proof-and-repair sequence.
 
 MergeWitness is a concrete workflow rather than a claim that semantic merge conflicts are new. The [judging and related-work notes](docs/JUDGING_AND_RELATED_WORK.md) discuss earlier approaches, including QuietClash and semantic merge research.
 

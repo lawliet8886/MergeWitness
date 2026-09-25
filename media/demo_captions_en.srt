@@ -1,0 +1,96 @@
+1
+00:00:00,360 --> 00:00:04,810
+Two changes can be individually correct and still fail when
+combined.
+
+2
+00:00:05,480 --> 00:00:09,170
+MergeWitness makes that interaction visible before a release.
+
+3
+00:00:09,840 --> 00:00:14,300
+This synthetic catalog starts with a global notebook price of
+one hundred dollars.
+
+4
+00:00:14,850 --> 00:00:18,670
+Change A adds tenant pricing, so Alpha pays ninety dollars.
+
+5
+00:00:19,290 --> 00:00:21,660
+Change B adds a cache by notebook SKU.
+
+6
+00:00:22,560 --> 00:00:25,110
+Each branch passes its recorded Node test suite.
+
+7
+00:00:25,820 --> 00:00:28,680
+The clean merge is where the hidden failure appears.
+
+8
+00:00:29,480 --> 00:00:34,620
+Alpha requests the notebook first, and the cache stores ninety
+dollars under the notebook alone.
+
+9
+00:00:35,400 --> 00:00:37,500
+Beta then requests the same notebook.
+
+10
+00:00:38,140 --> 00:00:42,530
+Beta should receive one hundred dollars, but receives Alpha's
+ninety-dollar value.
+
+11
+00:00:43,390 --> 00:00:47,500
+The browser repeats that frozen sequence across the real Git
+snapshots.
+
+12
+00:00:48,140 --> 00:00:51,430
+Base, Change A, and Change B pass the invariant.
+
+13
+00:00:52,130 --> 00:00:54,470
+The combined snapshot fails consistently.
+
+14
+00:00:55,510 --> 00:01:00,100
+IBM Bob authored the probe and the feature checks that made
+this interaction explicit.
+
+15
+00:01:00,640 --> 00:01:03,830
+Bob then produced a focused repair in catalog dot js.
+
+16
+00:01:04,550 --> 00:01:08,500
+The repair uses a nested map: first by tenant, then by
+notebook.
+
+17
+00:01:08,950 --> 00:01:12,990
+That keeps each tenant's cache entry separate without fragile
+string key encoding.
+
+18
+00:01:13,900 --> 00:01:15,750
+The candidate was independently verified.
+
+19
+00:01:16,300 --> 00:01:22,690
+The recorded Node suite passed, the frozen probe passed
+consistently, and both tenant-pricing and cache feature checks
+passed.
+
+20
+00:01:23,410 --> 00:01:27,150
+The public report records the candidate commit and the
+unchanged test evidence.
+
+21
+00:01:27,960 --> 00:01:35,000
+MergeWitness gives a maintainer one concrete witness, one
+repair, and a reproducible path to verify both features remain
+intact.

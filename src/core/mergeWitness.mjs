@@ -99,6 +99,19 @@ function treeId(path, commit) {
   return git(path, 'rev-parse', `${commit}^{tree}`);
 }
 
+function assertPreparedSnapshots(analysis) {
+  for (const key of ['base', 'branchA', 'branchB', 'merged']) {
+    const path = analysis.paths[key];
+    const expectedCommit = analysis.commits[key];
+    if (git(path, 'rev-parse', 'HEAD') !== expectedCommit || treeId(path, 'HEAD') !== analysis.trees[key]) {
+      throw new Error(`Prepared ${key} snapshot no longer matches its recorded commit and tree.`);
+    }
+    if (git(path, 'status', '--porcelain=v1', '--untracked-files=all', '--ignored=matching')) {
+      throw new Error(`Prepared ${key} snapshot must remain clean during evaluation.`);
+    }
+  }
+}
+
 /**
  * Creates disposable worktrees from a trusted local repository. It never writes
  * to the source repository: all merge work happens in the private clone.
@@ -215,6 +228,17 @@ function freezeProbe(analysis, probePath, probeDependencies) {
   return { probePath: join(frozenRoot, basename(originalProbe)), manifest };
 }
 
+function assertFrozenProbeIntegrity(frozen) {
+  if (!Array.isArray(frozen.manifest) || frozen.manifest.length === 0 || frozen.manifest[0].frozen !== frozen.probePath || frozen.manifest[0].hash !== frozen.probeHash) {
+    throw new Error('Frozen probe manifest is incomplete or inconsistent.');
+  }
+  for (const entry of frozen.manifest) {
+    if (!existsSync(entry.frozen) || sha256(entry.frozen) !== entry.hash) {
+      throw new Error(`Frozen probe or dependency changed after evaluation: ${entry.frozen}`);
+    }
+  }
+}
+
 function freezeFeatureChecks(analysis, featureCheckPaths) {
   const frozenRoot = join(analysis.root, 'frozen-feature-checks');
   mkdirSync(frozenRoot, { recursive: true });
@@ -237,12 +261,19 @@ export function evaluate({ analysisId, statePath, probePath, probeDependencies =
   if (!analysis.merge.clean) return { analysisId, classification: 'text_conflict', merge: analysis.merge };
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 10) throw new Error('repetitions must be an integer from 1 to 10.');
 
+  assertPreparedSnapshots(analysis);
+
   const frozen = freezeProbe(analysis, probePath, probeDependencies);
   const frozenFeatureChecks = freezeFeatureChecks(analysis, featureCheckPaths);
   const frozenProbe = frozen.probePath;
   const probeHash = sha256(frozenProbe);
+  const frozenEvidence = { ...frozen, probeHash };
+  assertFrozenProbeIntegrity(frozenEvidence);
   const matrix = {};
   for (const key of ['base', 'branchA', 'branchB', 'merged']) matrix[key] = probeSnapshot(analysis.paths[key], frozenProbe, repetitions);
+
+  assertPreparedSnapshots(analysis);
+  assertFrozenProbeIntegrity(frozenEvidence);
 
   let classification;
   if (!normalTestsAllPass(analysis)) classification = 'ordinary_test_failure';
@@ -271,9 +302,7 @@ export function verifyRepair({ analysisId, statePath, candidatePath }) {
   if (git(candidate, 'merge-base', '--is-ancestor', analysis.commits.merged, 'HEAD') !== '') {
     throw new Error('candidatePath must descend from the combined snapshot.');
   }
-  if (sha256(analysis.frozen.probePath) !== analysis.frozen.probeHash) {
-    throw new Error('Frozen probe changed after evaluation; repair verification is invalid.');
-  }
+  assertFrozenProbeIntegrity(analysis.frozen);
   if (analysis.frozen.featureChecks.length === 0) {
     throw new Error('At least one independent feature check is required for repair verification.');
   }
@@ -288,6 +317,7 @@ export function verifyRepair({ analysisId, statePath, candidatePath }) {
     if (sha256(entry.frozen) !== entry.hash) throw new Error(`Frozen feature check changed: ${entry.frozen}`);
     return { ...entry, result: probeSnapshot(candidate, entry.frozen, 1) };
   });
+  assertFrozenProbeIntegrity(analysis.frozen);
   const passed = normalTests.exitCode === 0 && probe.kind === 'pass' && probe.consistent && featureChecks.every((entry) => entry.result.kind === 'pass' && entry.result.consistent);
   const report = {
     version: 1,

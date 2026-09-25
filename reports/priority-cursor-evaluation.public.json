@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "scenario": "priority-cursor",
+  "stage": "Bob-original-probe-evaluation",
+  "passed": true,
+  "bobTaskId": "4901e274fb4230386d1463da9b82ce4f",
+  "bobTaskSummary": "bob_sessions/03-priority-cursor-probe-summary.png",
+  "source": {
+    "fixture": "synthetic priority-cursor-history",
+    "refs": {
+      "baseRef": "base",
+      "branchARef": "priority-order",
+      "branchBRef": "id-cursor"
+    },
+    "commits": {
+      "base": "1dc981c1c9fa350bfebae2231a63c09f7b9a9f45",
+      "branchA": "a78b570ef8e12ec43d3b78c4ef90b281f9f2d8bd",
+      "branchB": "17c7c123876f4b52ae872ba8b2bd042edf01311d",
+      "merged": "b0d76788129cc19959aefea9e9d1b3ccd60d4c44"
+    },
+    "trees": {
+      "base": "0dca0c67af96b109a3f723ee240959561804306b",
+      "branchA": "f38dffa55679e2730b966a8c10cff8f1a1265648",
+      "branchB": "24599de4a1db8cb2002bf53a8db4355ff5d67992",
+      "merged": "f5e6d1ca8906cab894a0512f4c0a8425a5cff67e"
+    }
+  },
+  "merge": {
+    "clean": true,
+    "commit": "b0d76788129cc19959aefea9e9d1b3ccd60d4c44"
+  },
+  "normalTests": {
+    "base": {
+      "exitCode": 0
+    },
+    "branchA": {
+      "exitCode": 0
+    },
+    "branchB": {
+      "exitCode": 0
+    },
+    "merged": {
+      "exitCode": 0
+    }
+  },
+  "classification": "interaction_witness",
+  "repetitions": 3,
+  "bobOriginals": [
+    {
+      "name": "priority-cursor.probe.mjs",
+      "sha256": "b0edf5cd29df7048dd7ed9738994c524194712e3c88b8bf910524de4ce65d648"
+    },
+    {
+      "name": "priority-order.check.mjs",
+      "sha256": "d021f5db49106646e2ea5bab63a20a736843b97dee5ea7e5bf5d7bdd061fa33e"
+    },
+    {
+      "name": "id-cursor.check.mjs",
+      "sha256": "dd654d0a418c3cce260203b057aac53d3d1b9d3e68055c982fee0a6cf5d6fafb"
+    }
+  ],
+  "frozenProbe": {
+    "sha256": "b0edf5cd29df7048dd7ed9738994c524194712e3c88b8bf910524de4ce65d648",
+    "files": [
+      {
+        "name": "priority-cursor.probe.mjs",
+        "sha256": "b0edf5cd29df7048dd7ed9738994c524194712e3c88b8bf910524de4ce65d648"
+      }
+    ]
+  },
+  "matrix": {
+    "base": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "branchA": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "branchB": {
+      "status": "pass",
+      "consistent": true,
+      "evidence": [
+        null,
+        null,
+        null
+      ]
+    },
+    "merged": {
+      "status": "fail",
+      "consistent": true,
+      "evidence": [
+        {
+          "missing": [
+            "a"
+          ],
+          "extra": [],
+          "pages": [
+            [
+              "b",
+              "c"
+            ],
+            [
+              "d"
+            ]
+          ]
+        },
+        {
+          "missing": [
+            "a"
+          ],
+          "extra": [],
+          "pages": [
+            [
+              "b",
+              "c"
+            ],
+            [
+              "d"
+            ]
+          ]
+        },
+        {
+          "missing": [
+            "a"
+          ],
+          "extra": [],
+          "pages": [
+            [
+              "b",
+              "c"
+            ],
+            [
+              "d"
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "featureChecks": [
+    {
+      "name": "priority-order.check.mjs",
+      "sha256": "d021f5db49106646e2ea5bab63a20a736843b97dee5ea7e5bf5d7bdd061fa33e",
+      "exitCode": 0,
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "id-cursor.check.mjs",
+      "sha256": "dd654d0a418c3cce260203b057aac53d3d1b9d3e68055c982fee0a6cf5d6fafb",
+      "exitCode": 0,
+      "status": "pass",
+      "evidence": null
+    }
+  ],
+  "limitation": "One synthetic fixture and one explicitly authored invariant; no general merge-safety guarantee or repair verification for this second scenario."
+}
