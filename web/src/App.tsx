@@ -3,8 +3,6 @@ import type { ScenarioResult, Variant } from './scenario'
 import './styles.css'
 import './overrides.css'
 
-const workerUrl = new URL('./scenario.worker.ts', import.meta.url)
-
 const variants: { id: Variant; label: string; branch: string; description: string }[] = [
   { id: 'base', label: 'Base', branch: 'main', description: 'Global price only' },
   { id: 'pricing', label: 'Change A', branch: 'tenant-prices', description: 'Adds tenant prices' },
@@ -13,7 +11,7 @@ const variants: { id: Variant; label: string; branch: string; description: strin
 ]
 
 const workerRun = (variant: Variant) => new Promise<ScenarioResult>((resolve, reject) => {
-  const worker = new Worker(workerUrl, { type: 'module' })
+  const worker = new Worker(new URL('./scenario.worker.ts', import.meta.url), { type: 'module' })
   worker.onmessage = (event) => { resolve(event.data as ScenarioResult); worker.terminate() }
   worker.onerror = (event) => { reject(event.error); worker.terminate() }
   worker.postMessage({ variant })
