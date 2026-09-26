@@ -1,7 +1,9 @@
 # MergeWitness media provenance
 
-`mergewitness_demo.mp4` is the local 150-second, 1920×1080, 30 fps H.264/AAC
-replacement judge video, pending a final review and external submission update.
+`mergewitness_demo.mp4` is the final 150-second, 1920×1080, 30 fps H.264/AAC
+judge video, published to LabLab on 25 September 2026. The public MP4 was read
+back and matched this file byte for byte; see the final publication receipt in
+`submission/LABLAB_SUBMISSION.md`.
 Its SHA-256 is `24a595443aef626ee271e6902916dff27e672c193d839d568b7073a2cd6cc7c3`
 (10,623,837 bytes); a full FFmpeg decode passed. It combines a continuous browser
 recording, measured Sulafat narration, sentence-aligned captions, and labeled
