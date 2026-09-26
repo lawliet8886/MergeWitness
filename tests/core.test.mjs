@@ -140,6 +140,62 @@ test('repair verification rejects a dirty candidate before running test commands
   }
 });
 
+test('repair verification protects a test file at the repository root', () => {
+  const root = mkdtempSync(join(tmpdir(), 'mergewitness-root-test-'));
+  const repo = join(root, 'repo');
+  mkdirSync(repo);
+  let analysis;
+  const git = (...args) => {
+    const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+  };
+  try {
+    git('init');
+    git('config', 'user.name', 'MergeWitness');
+    git('config', 'user.email', 'merge@example.invalid');
+    const catalogTest = "import test from 'node:test'; import assert from 'node:assert/strict'; test('ordinary regression', () => assert.equal(1, 1));\n";
+    writeFileSync(join(repo, 'catalog.test.mjs'), catalogTest);
+    writeFileSync(join(repo, 'test.js'), "const test = require('node:test'); test('second root test', () => {});\n");
+    git('add', '.');
+    git('commit', '-m', 'Base with root test');
+    git('tag', 'base');
+    git('checkout', '-b', 'change-a');
+    writeFileSync(join(repo, 'a.txt'), 'A\n');
+    git('add', '.');
+    git('commit', '-m', 'Change A');
+    git('checkout', '-b', 'change-b', 'base');
+    writeFileSync(join(repo, 'b.txt'), 'B\n');
+    git('add', '.');
+    git('commit', '-m', 'Change B');
+
+    const probe = join(root, 'probe.mjs');
+    const feature = join(root, 'feature.mjs');
+    writeFileSync(probe, "console.log(JSON.stringify({ status: 'pass' }));\n");
+    writeFileSync(feature, "console.log(JSON.stringify({ status: 'pass' }));\n");
+    analysis = prepare({ repoPath: repo, baseRef: 'base', branchARef: 'change-a', branchBRef: 'change-b' });
+    evaluate({ analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [feature], repetitions: 1 });
+
+    const candidate = analysis.paths.merged;
+    writeFileSync(join(candidate, 'catalog.test.mjs'), '// ordinary regression removed\n');
+    const add = spawnSync('git', ['add', '.'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(add.status, 0, add.stderr);
+    const commit = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Remove root test'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(commit.status, 0, commit.stderr);
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: candidate }), /Candidate changes protected test.*catalog\.test\.mjs/);
+
+    writeFileSync(join(candidate, 'catalog.test.mjs'), catalogTest);
+    writeFileSync(join(candidate, 'test.js'), '// second root test removed\n');
+    const addSecond = spawnSync('git', ['add', '.'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(addSecond.status, 0, addSecond.stderr);
+    const commitSecond = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Remove test.js'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(commitSecond.status, 0, commitSecond.stderr);
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: candidate }), /Candidate changes protected test.*test\.js/);
+  } finally {
+    if (analysis) dispose({ analysisId: analysis.analysisId });
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('evaluation rejects a snapshot changed after preparation, even after the change is committed', () => {
   const fixture = fixtureRepo();
   let analysis;

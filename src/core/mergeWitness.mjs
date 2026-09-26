@@ -121,6 +121,13 @@ function assertCandidateIntegrity(candidate, expectedHead, expectedTree) {
   }
 }
 
+function isProtectedCandidateFile(file) {
+  const testDirectory = /(^|\/)(?:tests?|specs?|__tests__|__specs__)\//i.test(file);
+  const testFile = /(^|\/)(?:(?:tests?|specs?)\.[^/]+|test[_-][^/]+|spec[_-][^/]+|[^/]+[._-](?:test|spec)(?:[._-][^/]*)?)$/i.test(file);
+  const probeOrConfig = /(^|\/)bob-probes\/|(^|\/)(package(?:-lock)?\.json|tsconfig.*\.json|vite\.config\.|.*\.config\.[cm]?[jt]s$)/.test(file);
+  return testDirectory || testFile || probeOrConfig;
+}
+
 /**
  * Creates disposable worktrees from a trusted local repository. It never writes
  * to the source repository: all merge work happens in the private clone.
@@ -331,7 +338,7 @@ export function verifyRepair({ analysisId, statePath, candidatePath }) {
   const dirty = git(candidate, 'status', '--porcelain=v1', '--untracked-files=all', '--ignored=matching');
   if (dirty) throw new Error('Candidate worktree must be committed and clean before repair verification.');
   const changed = new Set(git(candidate, 'diff', '--name-only', `${analysis.commits.merged}..HEAD`).split(/\r?\n/).filter(Boolean));
-  const protectedChange = [...changed].find((file) => /(^|\/)(test|tests|bob-probes)\/|(^|\/)(package(?:-lock)?\.json|tsconfig.*\.json|vite\.config\.|.*\.config\.[cm]?[jt]s$)/.test(file));
+  const protectedChange = [...changed].find(isProtectedCandidateFile);
   if (protectedChange) throw new Error(`Candidate changes protected test, probe, harness, or configuration file: ${protectedChange}`);
   const normalTests = testSnapshot(candidate, analysis.testCommand);
   assertCandidateIntegrity(candidate, candidateHead, candidateTree);
