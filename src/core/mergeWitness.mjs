@@ -64,6 +64,14 @@ function testSnapshot(path, testCommand) {
   return runCommand(path, command, args);
 }
 
+function assertSupportedTestCommand(testCommand) {
+  // Arbitrary runners can hide assertions in files outside protected test paths.
+  if (!Array.isArray(testCommand) || testCommand.length !== 2
+      || testCommand[0] !== 'node' || testCommand[1] !== '--test') {
+    throw new Error('Unsupported testCommand: only ["node", "--test"] is supported. Custom runners cannot yet be protected during repair verification.');
+  }
+}
+
 function publicAnalysis(analysis) {
   return {
     analysisId: analysis.id,
@@ -143,9 +151,10 @@ function isProtectedCandidateFile(file) {
  * to the source repository: all merge work happens in the private clone.
  */
 export function prepare({ repoPath, baseRef, branchARef, branchBRef, testCommand = ['node', '--test'] }) {
+  assertSupportedTestCommand(testCommand);
+  testCommand = [...testCommand];
   const source = resolve(repoPath);
   assertTrustedDirectory(source);
-  if (!Array.isArray(testCommand) || testCommand.length === 0) throw new Error('testCommand must be a non-empty argv array.');
 
   const commits = {
     base: resolveRef(source, baseRef),
@@ -291,6 +300,7 @@ function freezeFeatureChecks(evaluationRoot, featureCheckPaths) {
 
 export function evaluate({ analysisId, statePath, probePath, probeDependencies = [], featureCheckPaths = [], repetitions = 3 }) {
   const analysis = loadAnalysis(analysisId, statePath);
+  assertSupportedTestCommand(analysis.testCommand);
   if (!Array.isArray(probeDependencies) || !Array.isArray(featureCheckPaths)) throw new Error('probeDependencies and featureCheckPaths must be arrays.');
   if (!analysis.merge.clean) return { analysisId, classification: 'text_conflict', merge: analysis.merge };
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 10) throw new Error('repetitions must be an integer from 1 to 10.');
@@ -337,6 +347,7 @@ export function evaluate({ analysisId, statePath, probePath, probeDependencies =
 
 export function verifyRepair({ analysisId, statePath, candidatePath }) {
   const analysis = loadAnalysis(analysisId, statePath);
+  assertSupportedTestCommand(analysis.testCommand);
   if (!analysis.frozen) throw new Error('evaluate must freeze a probe before verifyRepair.');
   const candidate = resolve(candidatePath);
   if (!existsSync(candidate)) throw new Error('candidatePath does not exist.');

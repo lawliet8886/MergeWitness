@@ -73,3 +73,15 @@ evaluation instead of overwriting one shared file.
 Browser checks have a 15-second timeout. Success, error, cancellation, and timeout
 terminate the worker and clear its timer and listeners. A failed comparison
 cancels the remaining workers in its batch and lets the user retry.
+
+The custom-command audit reproduced an invalid repair approval after a candidate
+removed an assertion from `regression.mjs`, a runner outside protected test names.
+Preparation now accepts only the exact `node --test` command. Evaluation and
+repair verification enforce the same restriction when loading older analysis
+state. Custom runners, wrappers, and additional arguments are rejected rather
+than assumed to have protected assertion files. The supplied command array is
+copied so later caller mutations cannot change a prepared analysis. This narrows
+the supported API; it does not change the demonstrated fixture or Bob artifacts.
+Validation: all 15 core and report-binding tests passed. Independent replay of
+the original saved bypass state rejected evaluation and repair verification,
+while preserving the prior state and repair report byte for byte.

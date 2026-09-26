@@ -8,7 +8,7 @@ The generator also creates `fixtures/.generated/priority-cursor-history`, with `
 
 ## Core contract
 
-Generate the history with `node fixtures/create-fixtures.mjs`. Analyze it through the persistent MCP server (`node src/mcp/server.mjs`) or the one-process CLI workflow. The standard test command is `node --test`.
+Generate the history with `node fixtures/create-fixtures.mjs`. Analyze it through the persistent MCP server (`node src/mcp/server.mjs`) or the one-process CLI workflow. The only supported test command is `node --test`; omit `testCommand` or pass exactly `["node", "--test"]`. Custom runners, wrappers, and extra arguments are rejected because their assertion files cannot yet be protected during repair verification. Analyses previously created with a custom command must be prepared again using the supported command before evaluation or repair verification.
 
 Create a Vite-worker-safe module directly from the actual Git refs with:
 

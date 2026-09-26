@@ -19,16 +19,52 @@ function fixtureRepo() {
   return { root, tenantRepo: generated, priorityRepo: join(dirname(generated), 'priority-cursor-history') };
 }
 
+test('unsupported test runners are rejected by the API, CLI, and MCP before repository access', () => {
+  const error = /Unsupported testCommand: only/;
+  for (const testCommand of [null, [], ['node'], ['node', 'regression.mjs'], ['npm', 'test'],
+    ['node', '--test', 'regression.mjs'], ['node', '--test', '--import=./runner.mjs'], 'node --test']) {
+    assert.throws(() => prepare({ repoPath: 'missing-repository', testCommand }), error);
+  }
+  const root = mkdtempSync(join(tmpdir(), 'mergewitness-command-gate-'));
+  try {
+    const request = { repoPath: 'missing-repository', baseRef: 'base', branchARef: 'a', branchBRef: 'b', testCommand: ['node', 'regression.mjs'] };
+    const requestPath = join(root, 'request.json');
+    writeFileSync(requestPath, JSON.stringify(request));
+    const cli = spawnSync(process.execPath, ['src/cli/mergewitness.mjs', 'prepare', requestPath], { encoding: 'utf8' });
+    assert.equal(cli.status, 1);
+    assert.match(cli.stderr, error);
+    assert.equal(cli.stdout, '');
+    const mcp = spawnSync(process.execPath, ['src/mcp/server.mjs'], {
+      encoding: 'utf8', input: [
+        { jsonrpc: '2.0', id: 1, method: 'tools/list' },
+        { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'prepare', arguments: request } },
+      ].map(JSON.stringify).join('\n') + '\n',
+    });
+    assert.equal(mcp.status, 0, mcp.stderr);
+    const [listed, rejected] = mcp.stdout.trim().split(/\r?\n/).map(JSON.parse);
+    assert.deepEqual(listed.result.tools.find((tool) => tool.name === 'prepare').inputSchema.properties.testCommand.enum, [['node', '--test']]);
+    assert.match(rejected.error.message, error);
+    assert.equal(rejected.result, undefined);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('prepare uses a disposable clean merge and preserves passing ordinary tests', () => {
   const fixture = fixtureRepo();
   let analysis;
   try {
+    const testCommand = ['node', '--test'];
     analysis = prepare({
       repoPath: fixture.tenantRepo,
       baseRef: 'base',
       branchARef: 'tenant-pricing',
       branchBRef: 'sku-cache',
+      testCommand,
     });
+    testCommand[1] = 'regression.mjs';
+    assert.deepEqual(__testing.analyses.get(analysis.analysisId).testCommand, ['node', '--test']);
+    assert.deepEqual(JSON.parse(readFileSync(analysis.statePath, 'utf8')).testCommand, ['node', '--test']);
     assert.equal(analysis.merge.clean, true);
     assert.equal(analysis.normalTests.base.exitCode, 0);
     assert.equal(analysis.normalTests.branchA.exitCode, 0);
@@ -179,6 +215,19 @@ test('repair verification protects root tests, renamed tests, and accented test 
     evaluate({ analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [feature], repetitions: 1 });
 
     const candidate = analysis.paths.merged;
+    // Recreate the persisted command from analyses made before custom runners were restricted.
+    const supportedState = readFileSync(analysis.statePath, 'utf8');
+    const legacyState = JSON.parse(supportedState);
+    legacyState.testCommand = ['node', 'regression.mjs'];
+    writeFileSync(analysis.statePath, JSON.stringify(legacyState));
+    __testing.analyses.delete(analysis.analysisId);
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, statePath: analysis.statePath, candidatePath: candidate }), /Unsupported testCommand/);
+    assert.throws(() => evaluate({ analysisId: analysis.analysisId, statePath: analysis.statePath, probePath: probe, repetitions: 1 }), /Unsupported testCommand/);
+    assert.deepEqual(JSON.parse(readFileSync(analysis.statePath, 'utf8')), legacyState, 'Rejection must preserve prior state.');
+    writeFileSync(analysis.statePath, supportedState);
+    __testing.analyses.delete(analysis.analysisId);
+    assert.equal(verifyRepair({ analysisId: analysis.analysisId, statePath: analysis.statePath, candidatePath: candidate }).passed, true);
+
     writeFileSync(join(candidate, 'catalog.test.mjs'), '// ordinary regression removed\n');
     const add = spawnSync('git', ['add', '.'], { cwd: candidate, encoding: 'utf8' });
     assert.equal(add.status, 0, add.stderr);
