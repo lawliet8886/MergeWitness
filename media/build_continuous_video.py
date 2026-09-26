@@ -56,6 +56,8 @@ def phase(t):
         return "BOB REPAIR + FRESH VERIFICATION", "Tenant-aware cache; retained pricing and cache behavior"
     if t < 136:
         return "SECOND SYNTHETIC CASE", "Priority plus ID cursor: a witness, with no repair claimed"
+    if t < 141:
+        return "RELEASE REVIEW", "A reproduced pricing error. A repair that keeps both features."
     return "REPRODUCIBLE EVIDENCE", "Try the live lab: lawliet8886.github.io/MergeWitness/"
 
 
@@ -129,13 +131,21 @@ def main():
         for t in range(DURATION):
             frame(t).save(images / f"overlay-{t:03}.png", optimize=True)
         destination = HERE / "mergewitness_demo.mp4"
+        candidate = images / "mergewitness_demo.mp4"
         command = [
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-ss", str(manifest["prerollSeconds"]), "-i", str(CAPTURE / "browser.webm"),
             "-framerate", "1", "-i", str(images / "overlay-%03d.png"),
             "-i", str(HERE / "narration_final_sulafat.wav"),
             "-filter_complex",
-            "[0:v]crop=1920:845:0:70,scale=1736:765,pad=1920:1080:92:134:color=0x08172e,"
+            # Keep the actual recording continuous, enlarging its repair panel
+            # while the candidate runs and during the closing result.
+            "[0:v]split=2[wide_source][detail_source];"
+            "[wide_source]crop=1920:845:0:70,scale=1736:765:flags=lanczos,"
+            "pad=1920:1080:92:134:color=0x08172e,format=rgba[wide];"
+            "[detail_source]crop=800:355:1050:390,scale=1736:765:flags=lanczos,"
+            "pad=1920:1080:92:134:color=0x08172e,format=rgba[detail];"
+            "[wide][detail]overlay=0:0:enable='between(t,100,111)+gte(t,137)',"
             "tpad=stop_mode=clone:stop_duration=3,format=rgba[app];"
             "[1:v]fps=30,format=rgba[labels];"
             "[app][labels]overlay=0:0:shortest=1,format=yuv420p[v];"
@@ -143,9 +153,15 @@ def main():
             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium",
             "-crf", "19", "-r", "30", "-pix_fmt", "yuv420p", "-c:a", "aac",
             "-b:a", "160k", "-ar", "48000", "-t", str(DURATION),
-            "-movflags", "+faststart", str(destination),
+            "-movflags", "+faststart", str(candidate),
         ]
         subprocess.run(command, cwd=HERE, check=True)
+        # Preserve the previous valid video if rendering or decoding fails.
+        subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-xerror",
+            "-i", str(candidate), "-f", "null", "-",
+        ], check=True)
+        candidate.replace(destination)
     print(f"Created {destination} ({DURATION} seconds, continuous browser video)")
 
 

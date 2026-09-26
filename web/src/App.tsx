@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { ScenarioResult, Variant } from './scenario'
+import { workerRun } from './workerRun'
 import './styles.css'
 import './overrides.css'
 
@@ -13,13 +14,6 @@ const variants: { id: Variant; label: string; branch: string; description: strin
 
 const evidenceTabs = ['counterexample', 'repair', 'bob'] as const
 type EvidenceTab = typeof evidenceTabs[number]
-
-const workerRun = (variant: Variant) => new Promise<ScenarioResult>((resolve, reject) => {
-  const worker = new Worker(new URL('./scenario.worker.ts', import.meta.url), { type: 'module' })
-  worker.onmessage = (event) => { resolve(event.data as ScenarioResult); worker.terminate() }
-  worker.onerror = (event) => { reject(event.error); worker.terminate() }
-  worker.postMessage({ variant })
-})
 
 function StatePill({ status }: { status?: 'pass' | 'fail' }) {
   if (!status) return <span className="pill neutral"><i /> Not run</span>
@@ -47,14 +41,15 @@ export default function App() {
   const witness = combined?.probe.status === 'fail'
 
   const runComparison = async () => {
+    const batch = new AbortController()
     setRunning(true); setError(null)
     setResults((current) => ({ repaired: current.repaired }))
     try {
-      const output = await Promise.all(variants.map(({ id }) => workerRun(id)))
+      const output = await Promise.all(variants.map(({ id }) => workerRun(id, batch.signal)))
       setResults(Object.fromEntries(output.map((result) => [result.variant, result])))
       requestAnimationFrame(() => document.getElementById('laboratory')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-    } catch { setError({ action: 'comparison', message: 'The browser could not start a fresh scenario worker. Please try again.' }) }
-    finally { setRunning(false) }
+    } catch (error) { setError({ action: 'comparison', message: error instanceof Error ? error.message : 'The browser could not complete the comparison. Please try again.' }) }
+    finally { batch.abort(); setRunning(false) }
   }
 
   const verifyRepair = async () => {
@@ -64,7 +59,7 @@ export default function App() {
       const repair = await workerRun('repaired')
       setResults((current) => ({ ...current, repaired: repair }))
     }
-    catch { setError({ action: 'repair', message: 'The repair worker did not complete. Please try again.' }) }
+    catch (error) { setError({ action: 'repair', message: error instanceof Error ? error.message : 'The repair worker did not complete. Please try again.' }) }
     finally { setRunning(false) }
   }
 

@@ -237,6 +237,91 @@ test('evaluation rejects a snapshot changed after preparation, even after the ch
   }
 });
 
+test('re-evaluation isolates dependencies and preserves earlier evidence when an attempt fails', () => {
+  const root = mkdtempSync(join(tmpdir(), 'mergewitness-evaluation-test-'));
+  const repo = join(root, 'repo');
+  mkdirSync(repo);
+  const prepared = [];
+  const git = (...args) => {
+    const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+  };
+  try {
+    git('init');
+    git('config', 'user.name', 'MergeWitness');
+    git('config', 'user.email', 'merge@example.invalid');
+    writeFileSync(join(repo, 'test.mjs'), "import test from 'node:test'; test('ordinary regression', () => {});\n");
+    git('add', '.');
+    git('commit', '-m', 'Base');
+    git('tag', 'base');
+    for (const branch of ['a', 'b']) {
+      git('checkout', '-b', branch, 'base');
+      writeFileSync(join(repo, `${branch}.txt`), `${branch}\n`);
+      git('add', '.');
+      git('commit', '-m', branch);
+    }
+    const makeAnalysis = () => {
+      const analysis = prepare({ repoPath: repo, baseRef: 'base', branchARef: 'a', branchBRef: 'b' });
+      prepared.push(analysis);
+      return analysis;
+    };
+    const analysis = makeAnalysis();
+    const probe = join(root, 'probe.mjs');
+    const helper = join(root, 'helper.mjs');
+    const feature = join(root, 'feature.mjs');
+    const probeSource = "import { status } from './helper.mjs'; console.log(JSON.stringify({ status }));\n";
+    const featureSource = "console.log(JSON.stringify({ status: 'pass' }));\n";
+    writeFileSync(probe, probeSource);
+    writeFileSync(helper, "export const status = 'pass';\n");
+    writeFileSync(feature, featureSource);
+    const request = { analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [feature], repetitions: 1 };
+    const initial = evaluate({ ...request, probeDependencies: [helper] });
+    assert.equal(initial.classification, 'no_witness_found');
+    const preservedPaths = [analysis.statePath, initial.reportPath, ...initial.probeManifest.map((entry) => entry.frozen), ...initial.report.probe.featureChecks.map((entry) => entry.frozen)];
+    const preservedBytes = new Map(preservedPaths.map((path) => [path, readFileSync(path)]));
+    const assertPreserved = () => {
+      for (const [path, contents] of preservedBytes) assert.deepEqual(readFileSync(path), contents, path);
+      assert.deepEqual(__testing.analyses.get(analysis.analysisId).frozen, initial.report.probe);
+    };
+
+    assert.throws(() => evaluate({ ...request, probeDependencies: null }), /must be arrays/);
+    assertPreserved();
+    writeFileSync(probe, "console.log(JSON.stringify({ status: 'fail' }));\n");
+    assert.throws(() => evaluate({ ...request, probeDependencies: [join(root, 'missing.mjs')] }), /Probe file does not exist/);
+    assertPreserved();
+    writeFileSync(feature, "console.log(JSON.stringify({ status: 'fail' }));\n");
+    assert.throws(() => evaluate({ ...request, featureCheckPaths: [feature, join(root, 'missing-feature.mjs')] }), /Feature check does not exist/);
+    assertPreserved();
+    writeFileSync(probe, "import { appendFileSync } from 'node:fs'; appendFileSync(new URL(import.meta.url), '\\n// mutated during evaluation\\n'); console.log(JSON.stringify({ status: 'pass' }));\n");
+    assert.throws(() => evaluate(request), /Frozen probe or dependency changed/);
+    assertPreserved();
+    assert.equal(verifyRepair({ analysisId: analysis.analysisId, statePath: analysis.statePath, candidatePath: analysis.paths.merged }).passed, true);
+
+    writeFileSync(probe, probeSource);
+    writeFileSync(feature, featureSource);
+    const repeated = evaluate(request);
+    const fresh = makeAnalysis();
+    const freshResult = evaluate({ ...request, analysisId: fresh.analysisId });
+    assert.equal(repeated.classification, 'inconclusive');
+    assert.equal(freshResult.classification, repeated.classification);
+    for (const key of ['base', 'branchA', 'branchB', 'merged']) {
+      assert.equal(repeated.matrix[key].kind, freshResult.matrix[key].kind);
+      assert.match(repeated.matrix[key].runs[0].stderr, /ERR_MODULE_NOT_FOUND/);
+    }
+    assert.equal(repeated.probeManifest.length, 1);
+    assert.notEqual(dirname(repeated.probePath), dirname(initial.probePath));
+    assert.notEqual(repeated.report.probe.featureChecks[0].frozen, initial.report.probe.featureChecks[0].frozen);
+    assert.notEqual(repeated.reportPath, initial.reportPath);
+    for (const [path, contents] of preservedBytes) {
+      if (path !== analysis.statePath) assert.deepEqual(readFileSync(path), contents, path);
+    }
+    assert.equal(verifyRepair({ analysisId: analysis.analysisId, candidatePath: analysis.paths.merged }).passed, false);
+  } finally {
+    for (const analysis of prepared) dispose({ analysisId: analysis.analysisId });
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('repair verification detects frozen dependency changes before and after execution', () => {
   const fixture = fixtureRepo();
   let analysis;
@@ -244,12 +329,12 @@ test('repair verification detects frozen dependency changes before and after exe
     analysis = prepare({ repoPath: fixture.tenantRepo, baseRef: 'base', branchARef: 'tenant-pricing', branchBRef: 'sku-cache' });
     const probe = join(fixture.root, 'dependency.probe.mjs');
     const helper = join(fixture.root, 'helper.mjs');
-    const frozenHelper = join(dirname(analysis.statePath), 'frozen-probe', 'helper.mjs');
     const feature = join(fixture.root, 'mutating.feature.mjs');
     writeFileSync(helper, "export const status = 'pass';\n");
     writeFileSync(probe, "import { status } from './helper.mjs'; console.log(JSON.stringify({ status }));\n");
-    writeFileSync(feature, `import { writeFileSync } from 'node:fs'; writeFileSync(${JSON.stringify(frozenHelper)}, "export const status = 'pass'; // changed during verification\\n"); console.log(JSON.stringify({ status: 'pass' }));\n`);
+    writeFileSync(feature, `import { writeFileSync } from 'node:fs'; writeFileSync(new URL('../frozen-probe/helper.mjs', import.meta.url), "export const status = 'pass'; // changed during verification\\n"); console.log(JSON.stringify({ status: 'pass' }));\n`);
     const evaluated = evaluate({ analysisId: analysis.analysisId, probePath: probe, probeDependencies: [helper], featureCheckPaths: [feature], repetitions: 1 });
+    const frozenHelper = evaluated.probeManifest.find((entry) => entry.source === helper).frozen;
     assert.equal(evaluated.classification, 'no_witness_found');
     const frozenProbeBefore = readFileSync(evaluated.probePath, 'utf8');
     writeFileSync(frozenHelper, "export const status = 'pass'; // changed before verification\n");
@@ -273,7 +358,6 @@ test('repair verification rejects candidate and frozen-check changes made by a p
     const mutatingFeature = join(fixture.root, 'mutating.feature.mjs');
     const modePath = join(fixture.root, 'mutation-mode.txt');
     const catalog = join(analysis.paths.merged, 'src', 'catalog.js');
-    const frozenEarlierCheck = join(dirname(analysis.statePath), 'frozen-feature-checks', 'passing.feature.mjs');
     writeFileSync(probe, "console.log(JSON.stringify({ status: 'pass' }));\n");
     writeFileSync(passingFeature, "console.log(JSON.stringify({ status: 'pass' }));\n");
     writeFileSync(mutatingFeature, `
@@ -281,7 +365,7 @@ test('repair verification rejects candidate and frozen-check changes made by a p
       import { spawnSync } from 'node:child_process';
       const mode = readFileSync(${JSON.stringify(modePath)}, 'utf8').trim();
       if (mode === 'candidate' || mode === 'commit') appendFileSync(${JSON.stringify(catalog)}, ${JSON.stringify('\n// changed during verification\n')});
-      if (mode === 'frozen') appendFileSync(${JSON.stringify(frozenEarlierCheck)}, ${JSON.stringify('\n// changed after its check ran\n')});
+      if (mode === 'frozen') appendFileSync(new URL('./passing.feature.mjs', import.meta.url), ${JSON.stringify('\n// changed after its check ran\n')});
       if (mode === 'commit') {
         const add = spawnSync('git', ['add', '--', 'src/catalog.js'], { encoding: 'utf8' });
         if (add.status !== 0) throw new Error(add.stderr);
@@ -291,7 +375,8 @@ test('repair verification rejects candidate and frozen-check changes made by a p
       console.log(JSON.stringify({ status: 'pass' }));
     `);
     writeFileSync(modePath, 'candidate');
-    evaluate({ analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [passingFeature, mutatingFeature], repetitions: 1 });
+    const evaluated = evaluate({ analysisId: analysis.analysisId, probePath: probe, featureCheckPaths: [passingFeature, mutatingFeature], repetitions: 1 });
+    const frozenEarlierCheck = evaluated.report.probe.featureChecks.find((entry) => entry.source === passingFeature).frozen;
 
     assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: analysis.paths.merged }), /Candidate worktree changed during repair verification/);
     const restore = spawnSync('git', ['restore', '--', 'src/catalog.js'], { cwd: analysis.paths.merged, encoding: 'utf8' });

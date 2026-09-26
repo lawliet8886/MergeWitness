@@ -6,7 +6,7 @@ The event publishes four dimensions without public weights. This map explains wh
 
 | Dimension | Claim to demonstrate | Required final evidence |
 |---|---|---|
-| Application of technology | IBM Bob participates in planning, probe design, diagnosis, repair, and review in a coherent developer workflow. | Real task IDs, task outputs, reviewed commits, consumption-summary PNGs in `bob_sessions/`, and reproducible checks. |
+| Application of technology | IBM Bob inspects the fixtures, authors probes and a repair, responds to review feedback, and documents the measured validation. | Real task IDs, task outputs, reviewed commits, consumption-summary PNGs in `bob_sessions/`, and reproducible checks. |
 | Presentation | A judge can understand the failure, run it, see the counterexample, and inspect the repair quickly. | Public demo, one primary scenario, concise video, accessible labeled states, repository README, and a verified deployment. |
 | Business value | The workflow reduces rework caused by clean merges whose current test suite misses a feature interaction. | A concrete maintainer release workflow, measured scenario outcomes, reproduction commands, and careful limits. |
 | Originality | The project combines a frozen interaction invariant, four-version witness, stateful counterexample, and repair-preservation checks in one understandable workflow. | Clear comparison to prior art, a functioning end-to-end flow, controls, and no unsupported novelty claim. |
@@ -23,7 +23,7 @@ The proposed project focus is narrower and demonstrable: a human-readable, state
 
 ### Semantic conflict research
 
-The paper [Semantic Conflict Detection for Merges](https://arxiv.org/abs/2310.02395) describes research on semantic conflicts and test generation. The accompanying [SAM project page](https://spgroup.github.io/papers/sam-semantic-merge-tool.html) provides further context. MergeWitness is a hackathon prototype using synthetic fixtures, not a replacement for that research and not a claim of complete semantic-conflict detection.
+The paper [Detecting Semantic Conflicts with Unit Tests](https://arxiv.org/abs/2310.02395) describes research on semantic conflicts and test generation. The accompanying [SAM project page](https://spgroup.github.io/papers/sam-semantic-merge-tool.html) provides further context. MergeWitness is a hackathon prototype using synthetic fixtures, not a replacement for that research and not a claim of complete semantic-conflict detection.
 
 [TOM](https://arxiv.org/abs/2003.00154) is further research on detecting higher-order conflicts with tests. Cite it if discussing prior test-based semantic-conflict work.
 

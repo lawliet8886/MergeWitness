@@ -2,14 +2,19 @@
 
 `mergewitness_demo.mp4` is the local 150-second, 1920×1080, 30 fps H.264/AAC
 replacement judge video, pending a final review and external submission update.
-Its SHA-256 is `cb7321dc01a6613b8198fb2826b9fe56df2c8b4ec42ad11474848016796ced7a`
-(10,001,374 bytes); a full FFmpeg decode passed. It combines a continuous browser
+Its SHA-256 is `24a595443aef626ee271e6902916dff27e672c193d839d568b7073a2cd6cc7c3`
+(10,623,837 bytes); a full FFmpeg decode passed. It combines a continuous browser
 recording, measured Sulafat narration, sentence-aligned captions, and labeled
 screenshots from three genuine IBM Bob IDE tasks. The browser actions include a
 fresh four-snapshot comparison, evidence-tab navigation, and a fresh repaired
 candidate run. The video identifies the independent audit additions as such;
 it does not attribute them to Bob or claim a repair for the second case.
-The first comparison action occurred at 1.87 seconds in the recording manifest.
+The first comparison action occurred at 1.84 seconds in the recording manifest.
+The refreshed capture uses the version with worker timeouts and recovery. The
+actual repair result panel is enlarged from 01:40 to 01:51 and again from 02:17
+through the closing frame, making the price and cache checks easier to read.
+The closing title connects the reproduced pricing error to release review.
+The existing Sulafat audio and caption timing are preserved.
 
 To reproduce it, run the Vite server from `web/`, then run
 `python media/capture_live_demo.py`, `python media/align_final_captions.py`, and

@@ -40,11 +40,11 @@ This is the six-slide presentation and the local, roughly 150-second replacement
 
 **Say:** “Bob authored the nested-Map repair. An independent audit strengthened derivative probe and cache checks, then verified the repaired candidate. Tenant-specific prices remain distinct, repeated requests still use the cache, and the ordinary suite exits with code zero.”
 
-### 6. A careful release decision
+### 6. Evidence for the release decision
 
-**On screen:** Public laboratory URL, CLI/MCP report sample, limitations box, and final evidence links.
+**On screen:** The ordinary suite passes despite Beta receiving 90 instead of 100; the two-request witness reproduces the failure; the repair keeps tenant prices distinct and caching active. Highlight the reviewer's decision to hold the demonstrated failing merge and inspect the repair. Keep scope limits and evidence links legible below.
 
-**Say:** “MergeWitness gives maintainers a reproducible interaction witness before release. It does not certify every merge as safe; it reports exactly what the executed probe found.”
+**Say:** “A green suite missed a wrong customer price. The same requests reproduce it, and the repair preserves both tenant pricing and caching. A reviewer can hold the failing merge and inspect the tested repair. These checks cover this synthetic scenario.”
 
 ## Replacement continuous edit (local, pending publication)
 
@@ -54,9 +54,9 @@ This is the six-slide presentation and the local, roughly 150-second replacement
 | 00:09–00:31 | Four fresh browser-worker results; Base/A/B pass and Combined exposes the 100-versus-90 witness. |
 | 00:31–01:01 | Inspect the frozen Alpha-then-Beta sequence and expected versus observed output. |
 | 01:01–01:25 | Open Bob evidence tab; actual task 1 IDE screenshot appears, with original Bob probe distinguished from audit derivative. |
-| 01:25–01:51 | Open repair tab; actual task 2 IDE screenshot and a fresh browser candidate run show retained behavior. |
+| 01:25–01:51 | Open repair tab; actual task 2 IDE screenshot and a fresh browser candidate run show retained behavior. Enlarge the real result panel from 01:40 so price and cache checks remain legible in a smaller player. |
 | 01:51–02:16 | Show the second synthetic priority/cursor witness, task 3 IDE evidence, and its no-repair boundary. |
-| 02:16–02:30 | Return to verified outcome and the live-demo address. |
+| 02:16–02:30 | Return to the verified outcome, enlarge the result from 02:17, emphasize the release-review benefit, and display the live-demo address. |
 
 The captions are aligned to the measured 146.24-second narration and burned
 into the MP4. The video shows Bob's actual IDE summaries as evidence, while the

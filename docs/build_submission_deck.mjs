@@ -12,9 +12,9 @@ if (!skillDir || !path.isAbsolute(skillDir)) {
 const buildDir = path.join(workspaceDir, "docs", ".deck-build");
 const stagingDir = path.join(workspaceDir, ".codex-finalizer");
 const outputDir = path.join(workspaceDir, "submission");
-const finalPath = path.join(outputDir, "mergewitness-deck-final-v2.pptx");
-const finalPdfPath = path.join(outputDir, "mergewitness-deck-final-v2.pdf");
-const candidatePath = path.join(stagingDir, "mergewitness-deck-final-v2.pptx");
+const finalPath = path.join(outputDir, "mergewitness-deck-final-v3.pptx");
+const finalPdfPath = path.join(outputDir, "mergewitness-deck-final-v3.pdf");
+const candidatePath = path.join(stagingDir, "mergewitness-deck-final-v3.pptx");
 const validatedPath = path.join(buildDir, `mergewitness-deck-validated-${Date.now()}.pptx`);
 
 const { resolvePresentationFont, finalizePresentation } = await import(
@@ -200,16 +200,18 @@ function status(slide, x, y, text, pass) {
 // Slide 6
 {
   const s = deck.slides.add();
-  base(s, 6, "A reproducible release decision", "MergeWitness reports what the executed interaction probe found.");
-  box(s, 56, 270, 310, 192, "Run the demo\n\nCompare snapshots and inspect the sequence", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
-  box(s, 486, 270, 310, 192, "Read the report\n\nCheck commits, probe hash and commands", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
-  box(s, 916, 270, 260, 192, "Review the repair\n\nRepeat the probe and feature checks", { fill: C.navy2, line: { style: "solid", fill: C.line, width: 2 }, radius: 16, size: 24 });
-  line(s, 366, 366, 468, 366, C.line, 3);
-  line(s, 796, 366, 898, 366, C.line, 3);
-  box(s, 56, 548, 1120, 70, "A passing probe means this probe found no witness. It does not certify every merge as safe.", { fill: "#15385E", line: { style: "solid", fill: C.cyan, width: 2 }, radius: 14, size: 27, bold: true, align: "center" });
+  base(s, 6, "Evidence for the release decision", "Measured tenant-cache fixture. A green suite missed a wrong customer price.");
+  label(s, 56, 268, "Existing suite", C.pink);
+  box(s, 56, 308, 330, 130, "Tests pass.\nBeta receives $90\ninstead of $100.", { size: 27 });
+  label(s, 458, 268, "Interaction witness", C.cyan);
+  box(s, 458, 308, 330, 130, "The same two requests reproduce the failure in the combined change.", { size: 27 });
+  label(s, 860, 268, "Verified repair", C.lime);
+  box(s, 860, 308, 316, 130, "Tenant prices stay distinct.\nRepeated requests still use the cache.", { size: 27 });
+  box(s, 56, 484, 1120, 70, "Hold the failing merge. Review the repair with both features preserved.", { size: 30, bold: true, color: C.lime });
+  box(s, 56, 578, 1120, 42, "These synthetic checks cover the executed scenarios. A passing probe cannot certify every merge as safe.", { size: 18, color: C.muted });
   box(s, 56, 633, 1050, 24, "Live demo: https://lawliet8886.github.io/MergeWitness/", { size: 15, color: C.cyan });
   box(s, 56, 657, 1050, 24, "Code and evidence: https://github.com/lawliet8886/MergeWitness", { size: 15, color: C.cyan });
-  s.speakerNotes.textFrame.setText("Live demo: https://lawliet8886.github.io/MergeWitness/ . Code, Bob task evidence and public reports: https://github.com/lawliet8886/MergeWitness . A passing probe establishes only the tested behavior, not universal merge safety.");
+  s.speakerNotes.textFrame.setText("Measured synthetic tenant-cache fixture. Source: reports/tenant-cache-evaluation.public.json records the ordinary suite passing in all four snapshots and the combined witness expected 100, observed 90, in three repetitions. reports/tenant-cache-repair.public.json records the repaired candidate passing the frozen interaction probe, tenant-pricing check and cache proxy check. These results let a reviewer hold the demonstrated failing merge and inspect the verified candidate while preserving both features. Live demo: https://lawliet8886.github.io/MergeWitness/ . Code, Bob task evidence and public reports: https://github.com/lawliet8886/MergeWitness . A passing probe establishes only the tested behavior, not universal merge safety.");
 }
 
 await (await PresentationFile.exportPptx(deck)).save(candidatePath);

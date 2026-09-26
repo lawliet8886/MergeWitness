@@ -43,6 +43,7 @@ replace the published reports:
 
 ```sh
 node --test tests/core.test.mjs tests/report-binding.test.mjs tests/evidence-checkout.test.mjs
+node --test web/tests/workerRun.test.mjs
 ```
 
 The interactive site lives under [web](web). Build and check its exported Git snapshots with:

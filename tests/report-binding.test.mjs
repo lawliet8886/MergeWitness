@@ -15,7 +15,7 @@ test('repair report stays bound to its original evaluation after another run', {
   const analysisRoots = [];
   const run = (command, args, cwd = copiedRepo) => spawnSync(command, args, { cwd, encoding: 'utf8', shell: false, timeout: 60_000 });
   const success = (result) => {
-    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+    assert.equal(result.status, 0, `${result.error?.message ?? ''}\n${result.stdout}\n${result.stderr}`);
     return result;
   };
   const rememberAnalysis = (result) => {

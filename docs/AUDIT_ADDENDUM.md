@@ -62,3 +62,14 @@ leaves any existing public repair artifact untouched.
 Repository attributes keep text files at LF on checkout and treat media as
 binary. A regression test checks the recorded evaluation, probe, repair, and
 video hashes in fresh Git clones with both `core.autocrlf=true` and `false`.
+
+Each evaluation attempt uses a new directory for its frozen probe, dependencies,
+feature checks, and report. Re-evaluating an analysis cannot inherit files omitted
+from the new manifest. The state file is replaced atomically after evaluation
+completes; a failed attempt preserves the prior frozen files, report, and state.
+Callers should use the returned `reportPath`, since reports are retained per
+evaluation instead of overwriting one shared file.
+
+Browser checks have a 15-second timeout. Success, error, cancellation, and timeout
+terminate the worker and clear its timer and listeners. A failed comparison
+cancels the remaining workers in its batch and lets the user retry.

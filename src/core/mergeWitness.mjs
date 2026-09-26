@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
@@ -85,7 +85,13 @@ function saveState(analysis) {
     normalTests: analysis.normalTests, testCommand: analysis.testCommand, trees: analysis.trees,
     frozen: analysis.frozen ?? null, statePath: analysis.statePath,
   };
-  writeFileSync(analysis.statePath, `${JSON.stringify(serializable, null, 2)}\n`);
+  const pendingPath = `${analysis.statePath}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(pendingPath, `${JSON.stringify(serializable, null, 2)}\n`);
+    renameSync(pendingPath, analysis.statePath);
+  } finally {
+    rmSync(pendingPath, { force: true });
+  }
 }
 
 function loadAnalysis(analysisId, statePath) {
@@ -227,10 +233,10 @@ function normalTestsAllPass(analysis) {
   return Object.values(analysis.normalTests).every((entry) => entry.exitCode === 0);
 }
 
-function freezeProbe(analysis, probePath, probeDependencies) {
+function freezeProbe(evaluationRoot, probePath, probeDependencies) {
   const originalProbe = resolve(probePath);
   const originalDir = dirname(originalProbe);
-  const frozenRoot = join(analysis.root, 'frozen-probe');
+  const frozenRoot = join(evaluationRoot, 'frozen-probe');
   mkdirSync(frozenRoot, { recursive: true });
   const files = [originalProbe, ...probeDependencies.map((entry) => resolve(entry))];
   const manifest = [];
@@ -267,8 +273,8 @@ function assertFrozenFeatureChecksIntegrity(featureChecks) {
   }
 }
 
-function freezeFeatureChecks(analysis, featureCheckPaths) {
-  const frozenRoot = join(analysis.root, 'frozen-feature-checks');
+function freezeFeatureChecks(evaluationRoot, featureCheckPaths) {
+  const frozenRoot = join(evaluationRoot, 'frozen-feature-checks');
   mkdirSync(frozenRoot, { recursive: true });
   const seen = new Set();
   return featureCheckPaths.map((input) => {
@@ -291,34 +297,42 @@ export function evaluate({ analysisId, statePath, probePath, probeDependencies =
 
   assertPreparedSnapshots(analysis);
 
-  const frozen = freezeProbe(analysis, probePath, probeDependencies);
-  const frozenFeatureChecks = freezeFeatureChecks(analysis, featureCheckPaths);
-  const frozenProbe = frozen.probePath;
-  const probeHash = sha256(frozenProbe);
-  const frozenEvidence = { ...frozen, probeHash };
-  assertFrozenProbeIntegrity(frozenEvidence);
-  assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
-  const matrix = {};
-  for (const key of ['base', 'branchA', 'branchB', 'merged']) matrix[key] = probeSnapshot(analysis.paths[key], frozenProbe, repetitions);
+  // Each attempt owns its files so retries cannot reuse or overwrite earlier evidence.
+  const evaluationRoot = mkdtempSync(join(analysis.root, 'evaluation-'));
+  try {
+    const frozen = freezeProbe(evaluationRoot, probePath, probeDependencies);
+    const frozenFeatureChecks = freezeFeatureChecks(evaluationRoot, featureCheckPaths);
+    const frozenProbe = frozen.probePath;
+    const probeHash = sha256(frozenProbe);
+    const frozenEvidence = { ...frozen, probeHash };
+    assertFrozenProbeIntegrity(frozenEvidence);
+    assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
+    const matrix = {};
+    for (const key of ['base', 'branchA', 'branchB', 'merged']) matrix[key] = probeSnapshot(analysis.paths[key], frozenProbe, repetitions);
 
-  assertPreparedSnapshots(analysis);
-  assertFrozenProbeIntegrity(frozenEvidence);
-  assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
+    assertPreparedSnapshots(analysis);
+    assertFrozenProbeIntegrity(frozenEvidence);
+    assertFrozenFeatureChecksIntegrity(frozenFeatureChecks);
 
-  let classification;
-  if (!normalTestsAllPass(analysis)) classification = 'ordinary_test_failure';
-  else if (Object.values(matrix).some((entry) => entry.kind === 'inconclusive')) classification = 'inconclusive';
-  else if (matrix.base.kind === 'fail') classification = 'preexisting_violation';
-  else if (matrix.branchA.kind === 'fail' || matrix.branchB.kind === 'fail') classification = 'branch_violation';
-  else if (matrix.merged.kind === 'fail') classification = 'interaction_witness';
-  else classification = 'no_witness_found';
+    let classification;
+    if (!normalTestsAllPass(analysis)) classification = 'ordinary_test_failure';
+    else if (Object.values(matrix).some((entry) => entry.kind === 'inconclusive')) classification = 'inconclusive';
+    else if (matrix.base.kind === 'fail') classification = 'preexisting_violation';
+    else if (matrix.branchA.kind === 'fail' || matrix.branchB.kind === 'fail') classification = 'branch_violation';
+    else if (matrix.merged.kind === 'fail') classification = 'interaction_witness';
+    else classification = 'no_witness_found';
 
-  analysis.frozen = { probePath: frozenProbe, probeHash, manifest: frozen.manifest, featureChecks: frozenFeatureChecks, repetitions, matrix, classification };
-  saveState(analysis);
-  const report = { version: 1, analysisId, refs: analysis.refs, commits: analysis.commits, trees: analysis.trees, merge: analysis.merge, normalTests: analysis.normalTests, probe: analysis.frozen };
-  const reportPath = join(analysis.root, 'evaluation-report.json');
-  writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-  return { analysisId, classification, probePath: frozenProbe, probeHash, probeManifest: frozen.manifest, repetitions, matrix, normalTests: analysis.normalTests, reportPath, report };
+    const nextAnalysis = { ...analysis, frozen: { probePath: frozenProbe, probeHash, manifest: frozen.manifest, featureChecks: frozenFeatureChecks, repetitions, matrix, classification } };
+    const report = { version: 1, analysisId, refs: analysis.refs, commits: analysis.commits, trees: analysis.trees, merge: analysis.merge, normalTests: analysis.normalTests, probe: nextAnalysis.frozen };
+    const reportPath = join(evaluationRoot, 'evaluation-report.json');
+    writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    saveState(nextAnalysis);
+    analyses.set(analysisId, nextAnalysis);
+    return { analysisId, classification, probePath: frozenProbe, probeHash, probeManifest: frozen.manifest, repetitions, matrix, normalTests: analysis.normalTests, reportPath, report };
+  } catch (error) {
+    rmSync(evaluationRoot, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 export function verifyRepair({ analysisId, statePath, candidatePath }) {
