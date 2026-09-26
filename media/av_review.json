@@ -1,0 +1,250 @@
+{
+  "sha256": "954ec9d70b26a7c32a8d7503a053ba57c8910ffcdd4717062b5ae3091b11110f",
+  "bytes": 10642878,
+  "duration": 150,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 30,
+  "streams_start_at_zero": true,
+  "full_decode": "PASS",
+  "black_segments": 0,
+  "audio_source": {
+    "source": "narration_final_sulafat.wav",
+    "sourceSha256": "d07b72859ad75eeb1bdd47804f919ab5011a3d68c7f39c3bf4ec5b871fdd2c60",
+    "output": "narration_reviewed_sulafat.wav",
+    "outputSha256": "166ffb189a0e6b73c04c5fb9563ac0d067aa12fcb3aa1a531b64d995754498a3",
+    "edit": "Replace the unsupported word Human with silence; retain original timeline and Sulafat voice",
+    "muteStartSeconds": 94.5,
+    "resumeSeconds": 95.24,
+    "fadeInSeconds": 0.005,
+    "durationSeconds": 146.24,
+    "unchangedSamplesOutsideEdit": true,
+    "validation": "Offline ASR without a reference prompt recovered Review caught a collision risk; not a human listening assessment"
+  },
+  "reviewDate": "2026-09-25",
+  "video": "mergewitness_demo.mp4",
+  "audioLevelsDb": {
+    "mean": -21.5,
+    "peak": -0.9
+  },
+  "captionReview": {
+    "cues": 33,
+    "allInspected": true,
+    "finalChangedCuesInspected": [
+      24,
+      31
+    ],
+    "clippingFound": false
+  },
+  "visualReview": {
+    "globalPhasesInspected": true,
+    "priorCandidateFramesInspected": 72,
+    "changedFinalFramesRechecked": true,
+    "finalVerdict": "READY",
+    "transitionsSeconds": {
+      "buttonVisible": 99.6,
+      "checking": 99.867,
+      "pass": 99.933,
+      "zoomEnds": 109.8,
+      "secondCaseTab": 109.9,
+      "secondCaseSpeech": 110.58
+    }
+  },
+  "speechReview": {
+    "method": "Full offline ASR of final MP4 decoded audio; no reference prompt",
+    "model": "Systran/faster-whisper-small",
+    "audioSha256": "35064f59474f21a703aa0c49d615c4ed79c24bcf417085cee1527ec8fa030a80",
+    "sourceDurationSeconds": 150.016,
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.92,
+        "text": "I open Merge Witness and run the comparison."
+      },
+      {
+        "start": 3.6,
+        "end": 6.94,
+        "text": "The browser starts fresh workers for four Git snapshots."
+      },
+      {
+        "start": 7.54,
+        "end": 12.56,
+        "text": "The base project, tenant pricing, a product cache, and their clean combination."
+      },
+      {
+        "start": 13.48,
+        "end": 16.34,
+        "text": "The ordinary Nodesuite passed in every snapshot."
+      },
+      {
+        "start": 17.12,
+        "end": 20.9,
+        "text": "Here, the same new behavior rule is checked across all four."
+      },
+      {
+        "start": 21.6,
+        "end": 28.36,
+        "text": "Base passes, pricing alone passes, cache alone passes, the combined version fails."
+      },
+      {
+        "start": 28.36,
+        "end": 31.78,
+        "text": "That is the interaction a green test suite missed."
+      },
+      {
+        "start": 32.66,
+        "end": 34.76,
+        "text": "Now I inspect the exact sequence."
+      },
+      {
+        "start": 35.64,
+        "end": 38.7,
+        "text": "Alpha requests a notebook and receives its $90 price."
+      },
+      {
+        "start": 39.58,
+        "end": 42.0,
+        "text": "The cache stores that price under the notebook skew."
+      },
+      {
+        "start": 42.84,
+        "end": 44.96,
+        "text": "Beta requests the same notebook next."
+      },
+      {
+        "start": 45.7,
+        "end": 49.48,
+        "text": "Beta should pay $100 but receives Alpha's $90 value."
+      },
+      {
+        "start": 50.18,
+        "end": 56.34,
+        "text": "This is a concrete customer boundary failure, with expected and observed results that a maintainer can reproduce."
+      },
+      {
+        "start": 57.2,
+        "end": 60.78,
+        "text": "IBM Bob helped turn the suspicion into executable evidence."
+      },
+      {
+        "start": 61.42,
+        "end": 66.86,
+        "text": "In the first real IDE task, Bob authored an original interaction probe and feature checks."
+      },
+      {
+        "start": 67.64,
+        "end": 70.0,
+        "text": "You can open its task summary from this evidence tab."
+      },
+      {
+        "start": 70.74,
+        "end": 75.4,
+        "text": "Independent review then strengthened the frozen probe and cache check before final verification."
+      },
+      {
+        "start": 76.36,
+        "end": 79.98,
+        "text": "The report records exactly which versions and hashes were executed."
+      },
+      {
+        "start": 80.5,
+        "end": 82.64,
+        "text": "The audit additions are not attributed to Bob."
+      },
+      {
+        "start": 83.4,
+        "end": 84.98,
+        "text": "Next, I open the repair tab."
+      },
+      {
+        "start": 84.98,
+        "end": 87.74,
+        "text": "Bob authored a focus change to the catalog."
+      },
+      {
+        "start": 88.36,
+        "end": 91.7,
+        "text": "Instead of one cache entry per product, it uses nested maps."
+      },
+      {
+        "start": 92.28,
+        "end": 93.9,
+        "text": "First by tenant, then by skew."
+      },
+      {
+        "start": 95.06,
+        "end": 98.98,
+        "text": "Review caught a collision risk in an earlier flat key and Bob revised the candidate."
+      },
+      {
+        "start": 99.84,
+        "end": 101.46,
+        "text": "I click run verified candidate."
+      },
+      {
+        "start": 102.24,
+        "end": 105.24,
+        "text": "A fresh browser worker now shows that Alpha still pays $90,"
+      },
+      {
+        "start": 105.74,
+        "end": 109.82,
+        "text": "Beta receives a fresh $100 and repeated requests still benefit from caching."
+      },
+      {
+        "start": 110.58,
+        "end": 113.62,
+        "text": "The repository also contains a second synthetic case."
+      },
+      {
+        "start": 113.62,
+        "end": 117.42,
+        "text": "Bob wrote a priority and cursor probe plus two feature checks."
+      },
+      {
+        "start": 118.04,
+        "end": 122.84,
+        "text": "Its clean combination skips an item even though the individual changes and ordinary tests pass."
+      },
+      {
+        "start": 123.46,
+        "end": 125.08,
+        "text": "We report that witness honestly."
+      },
+      {
+        "start": 125.56,
+        "end": 127.14,
+        "text": "No repair is claimed for the second case."
+      },
+      {
+        "start": 127.86,
+        "end": 131.92,
+        "text": "Finally, the public repository holds all three real Bob task summaries,"
+      },
+      {
+        "start": 132.38,
+        "end": 135.44,
+        "text": "the frozen checks, exact commits and machine readable reports."
+      },
+      {
+        "start": 136.16,
+        "end": 140.34,
+        "text": "Merge witness gives a release reviewer a specific failing sequence and a tested repair."
+      },
+      {
+        "start": 140.34,
+        "end": 143.3,
+        "text": "A passing probe only describes that execution."
+      },
+      {
+        "start": 143.68,
+        "end": 145.72,
+        "text": "It cannot certify every possible merge."
+      }
+    ],
+    "limits": "Automated speech recognition and waveform checks, not human perceptual listening. ASR spelling of proper names and SKU may differ from captions."
+  },
+  "scope": "Media and attribution correction; application code and published evidence reports unchanged."
+}

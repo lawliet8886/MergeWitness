@@ -2,6 +2,7 @@
 
 import json
 import math
+import os
 import subprocess
 import tempfile
 import textwrap
@@ -13,10 +14,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-CAPTURE = HERE / ".video-capture"
+CAPTURE = Path(os.environ.get("MERGEWITNESS_CAPTURE_DIR", str(HERE / ".video-capture")))
 SIZE = (1920, 1080)
 FONT_DIR = Path("C:/Windows/Fonts")
-with wave.open(str(HERE / "narration_final_sulafat.wav")) as wav:
+with wave.open(str(HERE / "narration_reviewed_sulafat.wav")) as wav:
     AUDIO_SECONDS = wav.getnframes() / wav.getframerate()
 DURATION = math.ceil(AUDIO_SECONDS) + 3
 
@@ -48,14 +49,16 @@ def phase(t):
         return "FOUR FROZEN SNAPSHOTS", "Run the same check against Base, A, B and Combined"
     if t < 31:
         return "INTERACTION WITNESS", "The combined change breaks a customer boundary"
-    if t < 61:
+    if t < 57.5:
         return "EXACT COUNTEREXAMPLE", "Alpha pays $90; Beta expects $100 but receives $90"
-    if t < 85:
+    if t < 84:
         return "BOB PROBE + INDEPENDENT AUDIT", "Original Bob probe measured separately from strengthened verification"
-    if t < 111:
+    if t < 110.5:
         return "BOB REPAIR + FRESH VERIFICATION", "Tenant-aware cache; retained pricing and cache behavior"
-    if t < 136:
+    if t < 128:
         return "SECOND SYNTHETIC CASE", "Priority plus ID cursor: a witness, with no repair claimed"
+    if t < 135.5:
+        return "REPRODUCIBLE EVIDENCE", "Three real Bob tasks, frozen checks, exact commits and reports"
     if t < 141:
         return "RELEASE REVIEW", "A reproduced pricing error. A repair that keeps both features."
     return "REPRODUCIBLE EVIDENCE", "Try the live lab: lawliet8886.github.io/MergeWitness/"
@@ -102,19 +105,21 @@ def frame(t):
     draw.text((90, 52), headline, font=font(35, True), fill="#f5f8ff")
     draw.text((1640, 20), "MergeWitness", font=font(22, True), fill="#a7c5ee")
 
-    caption = next((value for start, end, value in CAPTIONS if start <= t + 0.5 < end), None)
+    caption = next((value for start, end, value in CAPTIONS if start <= t < end), None)
     if caption:
-        lines = textwrap.wrap(caption, width=93, break_long_words=False)
+        lines = textwrap.wrap(caption, width=93, break_long_words=False, break_on_hyphens=False)
         if len(lines) > 2:
             raise ValueError(f"Caption exceeds two lines at {t}: {caption}")
         y = 948 if len(lines) == 2 else 972
         for line in lines:
             left, top, right, bottom = draw.textbbox((0, 0), line, font=font(32, True))
+            if right - left > 1740:
+                raise ValueError(f"Caption exceeds safe horizontal margins at {t}: {line}")
             draw.text(((1920 - (right - left)) // 2, y), line, font=font(32, True), fill="#f5f8ff")
             y += 45
     draw.rectangle((90, 1064, 90 + int(1740 * (t + 1) / DURATION), 1070), fill="#80b1ff")
 
-    task = 1 if 61 <= t < 83 else 2 if 86 <= t < 100 else 3 if 119 <= t < 130 else None
+    task = 1 if 61 <= t < 83 else 2 if 85.5 <= t < 99.5 else 3 if 114 <= t < 128 else None
     if task:
         canvas.alpha_composite(BOB_CARDS[task], (955, 222))
     return canvas
@@ -128,15 +133,26 @@ def main():
         raise RuntimeError("Browser capture contains too few actual actions")
     with tempfile.TemporaryDirectory(prefix="mergewitness-continuous-") as temp:
         images = Path(temp)
-        for t in range(DURATION):
-            frame(t).save(images / f"overlay-{t:03}.png", optimize=True)
-        destination = HERE / "mergewitness_demo.mp4"
+        # Emit an overlay at every actual caption/scene boundary, rather than
+        # rounding short phrases to whole seconds. The browser remains 30 fps.
+        boundaries = sorted({0.0, float(DURATION), *range(DURATION),
+                             *(value for start, end, _ in CAPTIONS for value in (start, end)),
+                             57.5, 61.0, 83.0, 84.0, 85.5, 99.5, 110.5, 114.0, 128.0, 135.5, 141.0})
+        concat = ["ffconcat version 1.0"]
+        for index, (start, end) in enumerate(zip(boundaries, boundaries[1:])):
+            name = f"overlay-{index:04}.png"
+            frame(start + 0.000001).save(images / name, optimize=True)
+            concat.extend([f"file '{name}'", f"duration {end - start:.6f}"])
+        concat.append(f"file '{name}'")
+        overlay_manifest = images / "overlays.ffconcat"
+        overlay_manifest.write_text("\n".join(concat) + "\n", encoding="utf-8")
+        destination = Path(os.environ.get("MERGEWITNESS_VIDEO_OUTPUT", str(HERE / "mergewitness_demo.mp4")))
         candidate = images / "mergewitness_demo.mp4"
         command = [
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-ss", str(manifest["prerollSeconds"]), "-i", str(CAPTURE / "browser.webm"),
-            "-framerate", "1", "-i", str(images / "overlay-%03d.png"),
-            "-i", str(HERE / "narration_final_sulafat.wav"),
+            "-f", "concat", "-safe", "0", "-i", str(overlay_manifest),
+            "-i", str(HERE / "narration_reviewed_sulafat.wav"),
             "-filter_complex",
             # Keep the actual recording continuous, enlarging its repair panel
             # while the candidate runs and during the closing result.
@@ -145,12 +161,13 @@ def main():
             "pad=1920:1080:92:134:color=0x08172e,format=rgba[wide];"
             "[detail_source]crop=800:355:1050:390,scale=1736:765:flags=lanczos,"
             "pad=1920:1080:92:134:color=0x08172e,format=rgba[detail];"
-            "[wide][detail]overlay=0:0:enable='between(t,100,111)+gte(t,137)',"
+            "[wide][detail]overlay=0:0:enable='between(t,99.5,109.8)+gte(t,137)',"
             "tpad=stop_mode=clone:stop_duration=3,format=rgba[app];"
             "[1:v]fps=30,format=rgba[labels];"
             "[app][labels]overlay=0:0:shortest=1,format=yuv420p[v];"
             "[2:a]apad=pad_dur=4[a]",
-            "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium",
+            "-filter_complex_threads", "2",
+            "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-threads", "4", "-preset", "medium",
             "-crf", "19", "-r", "30", "-pix_fmt", "yuv420p", "-c:a", "aac",
             "-b:a", "160k", "-ar", "48000", "-t", str(DURATION),
             "-movflags", "+faststart", str(candidate),

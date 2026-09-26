@@ -1,0 +1,13 @@
+{
+  "source": "narration_final_sulafat.wav",
+  "sourceSha256": "d07b72859ad75eeb1bdd47804f919ab5011a3d68c7f39c3bf4ec5b871fdd2c60",
+  "output": "narration_reviewed_sulafat.wav",
+  "outputSha256": "166ffb189a0e6b73c04c5fb9563ac0d067aa12fcb3aa1a531b64d995754498a3",
+  "edit": "Replace the unsupported word Human with silence; retain original timeline and Sulafat voice",
+  "muteStartSeconds": 94.5,
+  "resumeSeconds": 95.24,
+  "fadeInSeconds": 0.005,
+  "durationSeconds": 146.24,
+  "unchangedSamplesOutsideEdit": true,
+  "validation": "Offline ASR without a reference prompt recovered Review caught a collision risk; not a human listening assessment"
+}

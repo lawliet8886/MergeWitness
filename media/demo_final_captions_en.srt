@@ -99,9 +99,9 @@ Instead of one cache entry per product, it uses nested maps:
 first by tenant, then by SKU.
 
 24
-00:01:34,813 --> 00:01:39,148
-Human review caught a collision risk in an earlier flat key, and
-Bob revised the candidate.
+00:01:35,240 --> 00:01:39,148
+Review caught a collision risk in an earlier flat key, and Bob
+revised the candidate.
 
 25
 00:01:39,910 --> 00:01:41,581
@@ -134,8 +134,8 @@ second case.
 31
 00:02:08,195 --> 00:02:15,626
 Finally, the public repository holds all three real Bob task
-summaries, the frozen checks, exact commits, and machine-
-readable reports.
+summaries, the frozen checks, exact commits, and
+machine-readable reports.
 
 32
 00:02:16,278 --> 00:02:20,347

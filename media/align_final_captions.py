@@ -66,10 +66,14 @@ def stamp(seconds):
 
 captions = []
 for index, (sentence, (start, end)) in enumerate(zip(SENTENCES, intervals), 1):
-    lines = textwrap.wrap(sentence, width=64, break_long_words=False)
+    # Preserve original timing outside the documented local narration edit.
+    if sentence.startswith("Human review caught"):
+        sentence = sentence.replace("Human review caught", "Review caught", 1)
+        start = 95.24
+    lines = textwrap.wrap(sentence, width=64, break_long_words=False, break_on_hyphens=False)
     if len(lines) > 3:
         raise ValueError(f"Caption {index} too long for display: {sentence}")
     captions.append(f"{index}\n{stamp(start)} --> {stamp(end)}\n" + "\n".join(lines))
 (HERE / "demo_final_captions_en.srt").write_text("\n\n".join(captions) + "\n", encoding="utf-8")
 for index, (sentence, (start, end)) in enumerate(zip(SENTENCES, intervals), 1):
-    print(f"{index:02d} {start:6.2f}–{end:6.2f} {sentence[:65]}")
+    print(f"{index:02d} {start:6.2f}â€“{end:6.2f} {sentence[:65]}")

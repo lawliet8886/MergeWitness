@@ -1,0 +1,13 @@
+I open MergeWitness and run the comparison. The browser starts fresh workers for four Git snapshots: the base project, tenant pricing, a product cache, and their clean combination.
+
+The ordinary Node suite passed in every snapshot. Here, the same new behavior rule is checked across all four. Base passes. Pricing alone passes. Cache alone passes. The combined version fails. That is the interaction a green test suite missed.
+
+Now I inspect the exact sequence. Alpha requests a notebook and receives its ninety-dollar price. The cache stores that price under the notebook SKU. Beta requests the same notebook next. Beta should pay one hundred dollars, but receives Alpha's ninety-dollar value. This is a concrete customer-boundary failure, with expected and observed results that a maintainer can reproduce.
+
+IBM Bob helped turn the suspicion into executable evidence. In the first real IDE task, Bob authored an original interaction probe and feature checks. You can open its task summary from this evidence tab. Independent review then strengthened the frozen probe and cache check before final verification. The report records exactly which versions and hashes were executed; the audit additions are not attributed to Bob.
+
+Next I open the repair tab. Bob authored a focused change to the catalog. Instead of one cache entry per product, it uses nested maps: first by tenant, then by SKU. Review caught a collision risk in an earlier flat key, and Bob revised the candidate. I click Run verified candidate. A fresh browser worker now shows that Alpha still pays ninety, Beta receives a fresh one hundred, and repeated requests still benefit from caching.
+
+The repository also contains a second synthetic case. Bob wrote a priority-and-cursor probe plus two feature checks. Its clean combination skips an item even though the individual changes and ordinary tests pass. We report that witness honestly; no repair is claimed for this second case.
+
+Finally, the public repository holds all three real Bob task summaries, the frozen checks, exact commits, and machine-readable reports. MergeWitness gives a release reviewer a specific failing sequence and a tested repair. A passing probe only describes that execution; it cannot certify every possible merge.

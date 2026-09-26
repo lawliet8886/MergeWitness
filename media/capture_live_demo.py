@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / ".video-capture"
+OUT = Path(os.environ.get("MERGEWITNESS_CAPTURE_DIR", str(HERE / ".video-capture")))
 URL = os.environ.get("MERGEWITNESS_CAPTURE_URL", "http://127.0.0.1:5173/MergeWitness/")
 with wave.open(str(HERE / "narration_final_sulafat.wav")) as wav:
     NARRATION_DURATION = wav.getnframes() / wav.getframerate()
@@ -43,8 +43,12 @@ def main():
             remaining = second - (time.monotonic() - start)
             if remaining > 0:
                 page.wait_for_timeout(remaining * 1000)
+            action_started = time.monotonic() - start
             action()
-            events.append({"time": round(time.monotonic() - start, 2), "action": name})
+            events.append({"scheduled": second, "started": round(action_started, 3),
+                           "time": round(time.monotonic() - start, 3), "action": name})
+            if action_started - second > 0.75:
+                raise RuntimeError(f"Capture action missed narration cue: {name}")
 
         def scroll(selector):
             page.locator(selector).evaluate(
@@ -66,13 +70,13 @@ def main():
         at(24, "inspect combined witness", lambda: page.locator(".snapshot-grid .snapshot").last.hover())
         at(31, "show exact counterexample", lambda: scroll("#evidence"))
         at(51, "highlight expected and observed prices", lambda: page.get_by_role("tabpanel", name="Counterexample").hover())
-        at(62, "open Bob session evidence", lambda: page.get_by_role("tab", name="Bob session evidence").click())
+        at(57.8, "open Bob session evidence", lambda: page.get_by_role("tab", name="Bob session evidence").click())
         at(73, "highlight task summaries", lambda: page.get_by_role("link", name="Probe session screenshot").hover())
-        at(86, "open verified repair", lambda: page.get_by_role("tab", name="Verified Bob repair").click())
-        at(102, "run repaired candidate in a fresh worker", run_repair)
-        at(112, "inspect retained pricing and cache checks", lambda: page.locator(".repair-action").hover())
-        at(119, "show second Bob scenario", lambda: page.get_by_role("tab", name="Bob session evidence").click())
-        at(128, "highlight priority-cursor report", lambda: page.get_by_role("link", name="Priority-cursor evaluation report").hover())
+        at(84.3, "open verified repair", lambda: page.get_by_role("tab", name="Verified Bob repair").click())
+        at(101, "run repaired candidate in a fresh worker", run_repair)
+        at(106, "inspect retained pricing and cache checks", lambda: page.locator(".repair-action").hover())
+        at(111.1, "show second Bob scenario", lambda: page.get_by_role("tab", name="Bob session evidence").click())
+        at(118.5, "highlight priority-cursor report", lambda: page.get_by_role("link", name="Priority-cursor evaluation report").hover())
         at(136, "return to verified repair", lambda: page.get_by_role("tab", name="Verified Bob repair").click())
         at(DURATION - 1, "finish on live verified result", lambda: scroll("#evidence"))
         assert not errors, errors
