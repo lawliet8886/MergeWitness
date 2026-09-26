@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { isDeepStrictEqual } from 'node:util';
 import { evaluate, prepare, verifyRepair } from '../src/core/mergeWitness.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,12 +35,44 @@ function publicMatrix(matrix) {
   }]));
 }
 
+function readMatchingEvaluationReport(state, path) {
+  if (!existsSync(path)) throw new Error('Run evaluation before repair verification so its public report can be attested.');
+  if (!state.frozen) throw new Error('The supplied analysis state has no frozen evaluation.');
+  const bytes = readFileSync(path);
+  const report = JSON.parse(bytes.toString('utf8'));
+  const expected = {
+    version: 1,
+    scenario: 'tenant-cache',
+    stage: 'evaluation',
+    refs: state.refs,
+    commits: state.commits,
+    trees: state.trees,
+    merge: { clean: state.merge.clean, commit: state.merge.commit },
+    normalTests: Object.fromEntries(Object.entries(state.normalTests).map(([name, result]) => [name, { exitCode: result.exitCode }])),
+    classification: state.frozen.classification,
+    repetitions: state.frozen.repetitions,
+    probe: { sha256: state.frozen.probeHash, files: state.frozen.manifest.map((entry) => ({ name: basename(entry.frozen), sha256: entry.hash })) },
+    featureChecks: state.frozen.featureChecks.map((entry) => ({ name: basename(entry.frozen), sha256: entry.hash })),
+    matrix: publicMatrix(state.frozen.matrix),
+  };
+  const observed = { ...report, refs: report.source?.refs, commits: report.source?.commits, trees: report.source?.trees };
+  for (const [field, value] of Object.entries(expected)) {
+    if (!isDeepStrictEqual(observed[field], value)) {
+      throw new Error(`Public evaluation report does not match the supplied analysis state (${field}). Restore the evaluation report for this state before verifying its repair.`);
+    }
+  }
+  return bytes;
+}
+
 if (candidatePath) {
   if (!statePath) throw new Error('--candidate requires --state <analysis-state.json>.');
   const state = JSON.parse(readFileSync(resolve(statePath), 'utf8'));
-  const verified = verifyRepair({ analysisId: state.id, statePath, candidatePath });
   const evaluationReportPath = join(reports, 'tenant-cache-evaluation.public.json');
-  if (!existsSync(evaluationReportPath)) throw new Error('Run evaluation before repair verification so its public report can be attested.');
+  const evaluationReportBytes = readMatchingEvaluationReport(state, evaluationReportPath);
+  const verified = verifyRepair({ analysisId: state.id, statePath, candidatePath });
+  if (!readFileSync(evaluationReportPath).equals(evaluationReportBytes)) {
+    throw new Error('Public evaluation report changed during repair verification. No public repair report was written.');
+  }
   const candidateCatalog = join(resolve(candidatePath), 'src', 'catalog.js');
   if (!existsSync(candidateCatalog)) throw new Error('Candidate does not contain src/catalog.js.');
   const retainedArtifact = retainedArtifactPath ? resolve(retainedArtifactPath) : null;
@@ -61,7 +94,7 @@ if (candidatePath) {
     sourceMergedCommit: verified.sourceMergedCommit,
     sourceMergedTree: verified.sourceMergedTree,
     evaluationClassification: verified.evaluationClassification,
-    evaluationPublicReportSha256: sha256(evaluationReportPath),
+    evaluationPublicReportSha256: createHash('sha256').update(evaluationReportBytes).digest('hex'),
     testedCatalog: { path: 'src/catalog.js', sha256: sha256(candidateCatalog) },
     retainedArtifact: retainedArtifact
       ? { name: basename(retainedArtifact), sha256: sha256(retainedArtifact), matchesTestedCatalog: retainedMatchesCandidate }

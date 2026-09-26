@@ -24,7 +24,7 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - run: node --test tests/core.test.mjs
+      - run: node --test tests/core.test.mjs tests/report-binding.test.mjs tests/evidence-checkout.test.mjs
       - run: node fixtures/create-fixtures.mjs
       - run: npm ci
         working-directory: web

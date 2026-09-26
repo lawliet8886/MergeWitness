@@ -46,3 +46,19 @@ These checks establish the measured result for this synthetic case. They do
 not prove correctness for all inputs or make arbitrary repositories safe to
 execute. The local `analysis-state.json` is trusted state and must not be
 altered between evaluation and repair verification.
+
+The repair verifier reads changed Git paths as NUL-delimited records with rename
+detection disabled. This preserves Unicode filenames and checks both the old
+and new paths of a rename, so moving or renaming a protected test cannot bypass
+the candidate gate. Git command failures stop verification.
+
+The public repair workflow checks that the public evaluation report matches the
+supplied analysis state before running the repair. It compares source commits
+and trees, ordinary-test results, classification, frozen probe and feature-check
+hashes, repetition count, and matrix evidence. It also rejects report changes
+during verification and hashes the exact validated bytes. A mismatched report
+leaves any existing public repair artifact untouched.
+
+Repository attributes keep text files at LF on checkout and treat media as
+binary. A regression test checks the recorded evaluation, probe, repair, and
+video hashes in fresh Git clones with both `core.autocrlf=true` and `false`.

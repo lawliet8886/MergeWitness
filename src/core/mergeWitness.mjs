@@ -28,10 +28,14 @@ function run(command, args, options = {}) {
   };
 }
 
-function git(cwd, ...args) {
+function gitRaw(cwd, ...args) {
   const result = run('git', args, { cwd });
   if (result.exitCode !== 0) throw new Error(`git ${args.join(' ')} failed: ${result.stderr.trim()}`);
-  return result.stdout.trim();
+  return result.stdout;
+}
+
+function git(cwd, ...args) {
+  return gitRaw(cwd, ...args).trim();
 }
 
 function assertTrustedDirectory(path) {
@@ -337,7 +341,8 @@ export function verifyRepair({ analysisId, statePath, candidatePath }) {
   const candidateTree = treeId(candidate, 'HEAD');
   const dirty = git(candidate, 'status', '--porcelain=v1', '--untracked-files=all', '--ignored=matching');
   if (dirty) throw new Error('Candidate worktree must be committed and clean before repair verification.');
-  const changed = new Set(git(candidate, 'diff', '--name-only', `${analysis.commits.merged}..HEAD`).split(/\r?\n/).filter(Boolean));
+  // Include both sides of renames and preserve raw filenames, including accents.
+  const changed = new Set(gitRaw(candidate, 'diff', '--no-renames', '--name-only', '-z', `${analysis.commits.merged}..HEAD`).split('\0').filter(Boolean));
   const protectedChange = [...changed].find(isProtectedCandidateFile);
   if (protectedChange) throw new Error(`Candidate changes protected test, probe, harness, or configuration file: ${protectedChange}`);
   const normalTests = testSnapshot(candidate, analysis.testCommand);

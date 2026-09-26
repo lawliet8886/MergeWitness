@@ -1,0 +1,13 @@
+# Keep the exact text bytes used by published SHA-256 evidence on every platform.
+* text=auto eol=lf
+
+# Media and submission documents must never undergo line-ending conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.mp4 binary
+*.wav binary
+*.pdf binary
+*.pptx binary

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -140,7 +140,7 @@ test('repair verification rejects a dirty candidate before running test commands
   }
 });
 
-test('repair verification protects a test file at the repository root', () => {
+test('repair verification protects root tests, renamed tests, and accented test paths', () => {
   const root = mkdtempSync(join(tmpdir(), 'mergewitness-root-test-'));
   const repo = join(root, 'repo');
   mkdirSync(repo);
@@ -154,8 +154,11 @@ test('repair verification protects a test file at the repository root', () => {
     git('config', 'user.name', 'MergeWitness');
     git('config', 'user.email', 'merge@example.invalid');
     const catalogTest = "import test from 'node:test'; import assert from 'node:assert/strict'; test('ordinary regression', () => assert.equal(1, 1));\n";
+    const secondRootTest = "const test = require('node:test'); test('second root test', () => {});\n";
     writeFileSync(join(repo, 'catalog.test.mjs'), catalogTest);
-    writeFileSync(join(repo, 'test.js'), "const test = require('node:test'); test('second root test', () => {});\n");
+    writeFileSync(join(repo, 'test.js'), secondRootTest);
+    mkdirSync(join(repo, 'test'));
+    writeFileSync(join(repo, 'test', 'ação.mjs'), catalogTest);
     git('add', '.');
     git('commit', '-m', 'Base with root test');
     git('tag', 'base');
@@ -190,6 +193,25 @@ test('repair verification protects a test file at the repository root', () => {
     const commitSecond = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Remove test.js'], { cwd: candidate, encoding: 'utf8' });
     assert.equal(commitSecond.status, 0, commitSecond.stderr);
     assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: candidate }), /Candidate changes protected test.*test\.js/);
+
+    writeFileSync(join(candidate, 'test.js'), secondRootTest);
+    renameSync(join(candidate, 'catalog.test.mjs'), join(candidate, 'catalog-check.mjs'));
+    const addRename = spawnSync('git', ['add', '.'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(addRename.status, 0, addRename.stderr);
+    const commitRename = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Move regression outside test discovery'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(commitRename.status, 0, commitRename.stderr);
+    const renameDiff = spawnSync('git', ['diff', '--name-status', '-M', `${analysis.merge.commit}..HEAD`], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(renameDiff.status, 0, renameDiff.stderr);
+    assert.match(renameDiff.stdout, /R100\tcatalog\.test\.mjs\tcatalog-check\.mjs/);
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: candidate }), /Candidate changes protected test.*catalog\.test\.mjs/);
+
+    renameSync(join(candidate, 'catalog-check.mjs'), join(candidate, 'catalog.test.mjs'));
+    writeFileSync(join(candidate, 'test', 'ação.mjs'), '// regression removed\n');
+    const addAccented = spawnSync('git', ['add', '.'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(addAccented.status, 0, addAccented.stderr);
+    const commitAccented = spawnSync('git', ['-c', 'user.name=MergeWitness', '-c', 'user.email=merge@example.invalid', 'commit', '-m', 'Remove accented-path regression'], { cwd: candidate, encoding: 'utf8' });
+    assert.equal(commitAccented.status, 0, commitAccented.stderr);
+    assert.throws(() => verifyRepair({ analysisId: analysis.analysisId, candidatePath: candidate }), /Candidate changes protected test.*test\/ação\.mjs/);
   } finally {
     if (analysis) dispose({ analysisId: analysis.analysisId });
     rmSync(root, { recursive: true, force: true });

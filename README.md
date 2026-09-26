@@ -37,6 +37,14 @@ and separate priority-order and ID-cursor feature checks.
 
 To reproduce the repair verification, copy `src/bob-repairs/tenant-cache/catalog.fixed.js` over `src/catalog.js` **in the disposable merged candidate only**, commit that one change, then run `node scripts/run-lab.mjs --state <statePath> --candidate <candidatePath> --retained-artifact src/bob-repairs/tenant-cache/catalog.fixed.js`. The verifier requires a clean, committed candidate, rejects changes to protected tests, probes, and configuration, and executes the frozen probe and feature checks again. The [CLI](src/cli/mergewitness.mjs) and [MCP server](src/mcp/server.mjs) also expose the prepare/evaluate/verify-repair stages separately; see [fixture instructions](fixtures/README.md).
 
+Run the core regression suite and the report-binding and cross-platform evidence
+checks from the repository root. These tests use disposable fixtures and do not
+replace the published reports:
+
+```sh
+node --test tests/core.test.mjs tests/report-binding.test.mjs tests/evidence-checkout.test.mjs
+```
+
 The interactive site lives under [web](web). Build and check its exported Git snapshots with:
 
 ```sh
