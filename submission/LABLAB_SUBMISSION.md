@@ -59,7 +59,7 @@ The Bob evidence README maps each screenshot to its task goal, input and output 
 - Release verification: [GitHub Actions run 36193477058](https://github.com/lawliet8886/MergeWitness/actions/runs/36193477058) succeeded on commit `a4e3a813c91fde7ef0c73dc398b652efe7d3dcf8`.
 - Submission readback: the [public project page](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon/signal-foundry/mergewitness) shows the updated second-case paragraph, title, team Signal Foundry, new video poster and 96-second player, GitHub, new Presentation, Demo, and judging status.
 
-## Final publication receipt — 25 September 2026
+## Earlier publication receipt — superseded by the AV correction below
 
 The published repository separates Bob's exact original probe result from the independently strengthened audit result. Each re-evaluation isolates its frozen files and preserves prior evidence if the attempt fails. Browser workers time out after 15 seconds and permit retry. Unsupported custom test runners are rejected before preparation, evaluation, or repair verification. The final video records a continuous browser session with live comparison and repair actions and enlarges the actual repair checks for legibility. Its source and validation details are in `media/README.md`; the earlier URLs and hashes above remain historical records.
 
@@ -72,3 +72,15 @@ Final [public slides](https://storage.googleapis.com/lablab-static-eu/submission
 - Fresh public demo: JavaScript and CSS matched the reviewed local build byte for byte. Base/A/B passed; Combined reproduced 100 expected versus 90 observed. The repair and both feature checks passed. All assets returned HTTP 200; no console or page errors were observed.
 - Submission fields: long description 351 words / 2,296 characters; IBM Bob usage 304 words / 2,330 characters. The saved form reopened with both exact final values. GitHub, Demo, and Presentation links were confirmed on the public entry.
 - Completion receipt: “Submission Updated!” and the success sentence quoted above, followed by successful public artifact readback. Subsequent documentation-only commits record this receipt without changing the validated code or media.
+
+## Final AV correction and publication receipt — 25 September 2026, 23:22 BRT
+
+LabLab again displayed **Submission Updated!** and confirmed the IBM Bob 2.0 submission was updated successfully. The public page served the corrected video with duration 150 seconds and ready state 4. Its downloaded bytes exactly matched the approved local MP4.
+
+- [Current public video](https://storage.googleapis.com/lablab-video-submissions/submissions/k33cja4qh4z9ldarcmzuxye2/r2u9hq0fcbuvy3yyge5w4qxf/video/video_ymxihm88ufg7us3bcmc6vilj.mp4): SHA-256 `954ec9d70b26a7c32a8d7503a053ba57c8910ffcdd4717062b5ae3091b11110f`, 10,642,878 bytes, 150 seconds, 1920×1080, 30 fps, H.264/AAC.
+- Changes: align second-case evidence with its narration; enlarge the real candidate click and result; end the zoom before switching tabs; render captions at fractional-second boundaries; keep machine-readable unbroken; replace unsupported human attribution with neutral review wording and identify Codex review in the README.
+- Sulafat voice retained. Original TTS artifacts preserved; the local edit changes samples only from 94.50 to 95.245 seconds. No new synthesis was purchased.
+- Validation: complete FFmpeg decode; no black segments at the documented detector threshold; zero stream start offsets; all 33 captions inspected, with changed final captions rechecked; all phases reviewed and corrected transitions inspected frame by frame. Full offline speech recognition of the final MP4 recovered the complete narration. This is an automated intelligibility check, not a human perceptual listening assessment. The hash-bound details and transcript are in `media/av_review.json`.
+- Published media revision: `ca4e63d7bdffcb57f56eb4b47a55e4540e2a991a`. [GitHub Actions 36211416895](https://github.com/lawliet8886/MergeWitness/actions/runs/36211416895) passed core, report-binding, evidence-checkout, worker, fixture-parity, build, and deployment checks. Local LF/CRLF evidence-checkout checks passed 3/3. Functional application code is unchanged from the prior validated revision.
+- Public GitHub and Demo links remain correct. Presentation still points to the verified v3 PDF, SHA-256 `923cc3633ce9ae93657926e521f5f51a60db5456e10d8d75a5c79e4cba68196f`; form prose and slides were unchanged in this update.
+- Earlier video hashes and URLs above are historical. No known blocking defect remains from this review; this does not establish universal absence of bugs or a contest outcome.
